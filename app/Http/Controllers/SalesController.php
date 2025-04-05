@@ -56,8 +56,8 @@ class SalesController extends Controller
                 ]);
             }
 
-            // Calculate subtotal
-            $subTotal = $product->UnitPrice * $productData['quantity'];
+            // Calculate subtotal using UnitCost
+            $subTotal = $product->UnitCost * $productData['quantity'];
             $totalAmount += $subTotal;
 
             // Create sale detail
@@ -65,7 +65,7 @@ class SalesController extends Controller
                 'SaleID' => $sale->SaleID,
                 'ProductID' => $product->ProductID,
                 'Quantity' => $productData['quantity'],
-                'UnitPrice' => $product->UnitPrice,
+                'UnitPrice' => $product->UnitCost, // Store the cost price
                 'SubTotal' => $subTotal,
             ]);
 

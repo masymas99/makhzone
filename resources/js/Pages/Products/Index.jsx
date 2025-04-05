@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import Navbar from '@/Shared/Navbar';
 
@@ -9,15 +9,33 @@ export default function ProductsIndex() {
   const [selectedProduct, setSelectedProduct] = useState(null);
 
   const { data: formData, setData, post, put, delete: destroy, processing, errors } = useForm({
-    name: '',
+    ProductName: '',
+    Category: 'أغذية',
+    StockQuantity: 0,
+    UnitPrice: 0,
+    UnitCost: 0,
+    IsActive: true,
     description: ''
   });
 
+  // Initialize form data when editing
+  useEffect(() => {
+    if (selectedProduct) {
+      setData('ProductName', selectedProduct.ProductName);
+      setData('Category', selectedProduct.Category);
+      setData('StockQuantity', selectedProduct.StockQuantity);
+      setData('UnitPrice', selectedProduct.UnitPrice);
+      setData('UnitCost', selectedProduct.UnitCost);
+      setData('IsActive', selectedProduct.IsActive);
+      setData('description', selectedProduct.description || '');
+    }
+  }, [selectedProduct, setData]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    selectedProduct ?
-      put(route('products.update', selectedProduct.id)) :
-      post(route('products.store'));
+    selectedProduct 
+      ? put(route('products.update', selectedProduct.ProductID)) 
+      : post(route('products.store'));
   };
 
   return (
@@ -30,7 +48,19 @@ export default function ProductsIndex() {
             <div className="flex justify-between mb-6">
               <h2 className="text-xl font-semibold">قائمة المنتجات</h2>
               <button
-                onClick={() => setShowCreateModal(true)}
+                onClick={() => {
+                  setShowCreateModal(true);
+                  setSelectedProduct(null);
+                  setData({
+                    ProductName: '',
+                    Category: 'أغذية',
+                    StockQuantity: 0,
+                    UnitPrice: 0,
+                    UnitCost: 0,
+                    IsActive: true,
+                    description: ''
+                  });
+                }}
                 className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
               >
                 إضافة منتج جديد
@@ -51,7 +81,7 @@ export default function ProductsIndex() {
               </thead>
               <tbody>
                 {products.map((product) => (
-                  <tr key={product.id} className="border-b">
+                  <tr key={product.ProductID} className="border-b">
                     <td className="py-3">{product.ProductName}</td>
                     <td className="py-3">{product.Category}</td>
                     <td className="py-3">{product.StockQuantity}</td>
@@ -69,7 +99,7 @@ export default function ProductsIndex() {
                         تعديل
                       </button>
                       <button
-                        onClick={() => destroy(route('products.destroy', product.id))}
+                        onClick={() => destroy(route('products.destroy', product.ProductID))}
                         className="text-red-600 hover:text-red-800"
                       >
                         حذف
