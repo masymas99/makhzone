@@ -38,24 +38,29 @@ class SalesController extends Controller
         $totalAmount = 0;
         $productsData = $request->products;
 
-        foreach ($productsData as $productData) {
-            $product = Product::findOrFail($productData['product_id']);
-            $subTotal = $product->UnitPrice * $productData['quantity'];
-            $totalAmount += $subTotal;
-        }
-
+        // Create the sale record
         $sale = Sale::create([
             'TraderID' => $request->trader_id,
-            'SaleDate' => now(),
-            'TotalAmount' => $totalAmount,
-            'PaidAmount' => 0,
+            'TotalAmount' => 0, // Will be calculated later
+            'SaleDate' => now()
         ]);
 
-        \Log::info('Sale Created:', $sale->toArray());
-
+        // Process each product in the sale
         foreach ($productsData as $productData) {
             $product = Product::findOrFail($productData['product_id']);
+            
+            // Check if we have enough stock
+            if ($productData['quantity'] > $product->StockQuantity) {
+                return redirect()->back()->withErrors([
+                    'products.' . $productData['product_id'] => 'الكمية المطلوبة غير متوفرة في المخزون'
+                ]);
+            }
+
+            // Calculate subtotal
             $subTotal = $product->UnitPrice * $productData['quantity'];
+            $totalAmount += $subTotal;
+
+            // Create sale detail
             $saleDetail = SaleDetail::create([
                 'SaleID' => $sale->SaleID,
                 'ProductID' => $product->ProductID,
@@ -63,8 +68,17 @@ class SalesController extends Controller
                 'UnitPrice' => $product->UnitPrice,
                 'SubTotal' => $subTotal,
             ]);
+
+            // Update product stock
+            $product->StockQuantity -= $productData['quantity'];
+            $product->save();
+
             \Log::info('Sale Detail Created:', $saleDetail->toArray());
         }
+
+        // Update the total amount of the sale
+        $sale->TotalAmount = $totalAmount;
+        $sale->save();
 
         return redirect()->route('sales.index')->with('success', 'تم إنشاء الفاتورة بنجاح');
     }
