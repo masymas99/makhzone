@@ -2,6 +2,11 @@
 
 use App\Http\Controllers\SalesController;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
+
+Route::get('/', function () {
+    return Inertia::render('Welcome');
+})->name('welcome');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');

@@ -24,10 +24,9 @@ class DashboardController extends Controller
         $totalExpenses = Expense::sum('Amount');
 
         // حساب الديون بدقة عبر علاقات المدفوعات
-        $tradersDebt = Trader::with(['sales.payments', 'purchases'])->get()
+        $tradersDebt = Trader::with(['sales.payments'])->get()
             ->map(fn($trader) => $trader->sales->sum('TotalAmount')
-                - $trader->sales->flatMap->payments->sum('Amount')
-                + $trader->purchases->sum('TotalAmount'))
+                - $trader->sales->flatMap->payments->sum('Amount'))
             ->sum();
 
         // المبيعات الأخيرة مع بيانات التاجر

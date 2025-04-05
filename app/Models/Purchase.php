@@ -11,10 +11,15 @@ class Purchase extends Model
 
     protected $primaryKey = 'PurchaseID';
     protected $fillable = [
-        'SupplierName',
+        'SupplierID',
         'PurchaseDate',
         'TotalAmount'
     ];
+
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class, 'SupplierID');
+    }
 
     public function purchaseDetails()
     {

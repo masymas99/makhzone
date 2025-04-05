@@ -17,7 +17,17 @@ class PurchaseController extends Controller
 
     public function index()
     {
-        $purchases = $this->purchase->with(['supplier'])->get();
+        $purchases = $this->purchase->with(['supplier'])->get()->map(function ($purchase) {
+            return [
+                'id' => $purchase->PurchaseID,
+                'date' => $purchase->PurchaseDate,
+                'amount' => $purchase->TotalAmount,
+                'invoice_number' => $purchase->InvoiceNumber ?? '',
+                'trader' => $purchase->supplier ? $purchase->supplier->Name : '',
+                'status' => $purchase->Status ?? 'unpaid'
+            ];
+        });
+
         return Inertia::render('Purchases/Index', ['purchases' => $purchases]);
     }
 

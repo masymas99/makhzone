@@ -27,6 +27,11 @@ class Sale extends Model
         return $this->hasMany(SaleDetail::class, 'SaleID');
     }
 
+    public function payments()
+    {
+        return $this->hasMany(Payment::class, 'SaleID');
+    }
+
     public static function profitSummary()
     {
         $totalSales = self::sum('TotalAmount');
