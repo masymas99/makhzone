@@ -28,4 +28,10 @@ class Product extends Model
     {
         return $this->hasMany(PurchaseDetail::class, 'ProductID');
     }
-}
+
+    // if ($this->StockQuantity > 0) {
+    //     $this->AverageCost = $this->calculateAverageCost();
+    //     $this->save();
+    // }
+}      
+    

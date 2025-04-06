@@ -15,7 +15,9 @@ class SaleDetail extends Model
         'ProductID',
         'Quantity',
         'UnitPrice',
-        'SubTotal'
+        'UnitCost',
+        'SubTotal',
+        'Profit'
     ];
 
     public function sale()

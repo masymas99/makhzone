@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Purchase;
 use App\Models\PurchaseDetail;
+use App\Models\Product;
+use App\Models\InventoryBatch;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -32,7 +34,29 @@ class PurchaseDetailController extends Controller
             'price' => 'required|numeric|min:0'
         ]);
 
-        $purchase->details()->create($validated);
+        $product = Product::findOrFail($validated['product_id']);
+        
+        // Create purchase detail
+        $detail = $purchase->details()->create([
+            'ProductID' => $product->ProductID,
+            'Quantity' => $validated['quantity'],
+            'UnitCost' => $validated['price'],
+            'SubTotal' => $validated['quantity'] * $validated['price']
+        ]);
+
+        // Create inventory batch
+        InventoryBatch::create([
+            'ProductID' => $product->ProductID,
+            'PurchaseID' => $purchase->PurchaseID,
+            'BatchNumber' => 'BATCH-' . $purchase->PurchaseID . '-' . $detail->PurchaseDetailID,
+            'Quantity' => $validated['quantity'],
+            'UnitCost' => $validated['price'],
+            'PurchaseDate' => $purchase->PurchaseDate
+        ]);
+
+        // Update product stock
+        $product->StockQuantity += $validated['quantity'];
+        $product->save();
 
         return redirect()->route('purchases.details.index', $purchase);
     }

@@ -8,6 +8,16 @@ return new class extends Migration
 {
     public function up()
     {
+        // Suppliers Table
+        Schema::create('suppliers', function (Blueprint $table) {
+            $table->id('SupplierID');
+            $table->string('Name', 255);
+            $table->string('Phone', 20);
+            $table->text('Address');
+            $table->boolean('IsActive')->default(true);
+            $table->timestamps();
+        });
+
         // Products Table
         Schema::create('products', function (Blueprint $table) {
             $table->id('ProductID');
@@ -60,6 +70,14 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        // Add SupplierID column and foreign key after purchases table is created
+        Schema::table('purchases', function (Blueprint $table) {
+            $table->foreignId('SupplierID')->nullable()->after('PurchaseDate');
+            $table->foreign('SupplierID', 'purchases_supplier_foreign')
+                ->references('SupplierID')->on('suppliers')
+                ->onDelete('cascade');
+        });
+
         // PurchaseDetails Table
         Schema::create('purchase_details', function (Blueprint $table) {
             $table->id('PurchaseDetailID');
@@ -101,5 +119,6 @@ return new class extends Migration
         Schema::dropIfExists('sales');
         Schema::dropIfExists('traders');
         Schema::dropIfExists('products');
+        Schema::dropIfExists('suppliers');
     }
 };
