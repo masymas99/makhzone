@@ -3,10 +3,15 @@ import { Head, useForm, usePage } from '@inertiajs/react';
 import Navbar from '@/Shared/Navbar';
 
 export default function ProductsIndex() {
-  const { products, links } = usePage().props;
+  const { products, links, purchases } = usePage().props;
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+
+  // Calculate total purchases in frontend
+  const totalPurchases = purchases.reduce((total, purchase) => {
+    return total + parseFloat(purchase.TotalAmount);
+  }, 0).toFixed(2);
 
   const { data: formData, setData, post, put, delete: destroy, processing, errors } = useForm({
     ProductName: '',
@@ -145,6 +150,22 @@ export default function ProductsIndex() {
                 </ul>
               </div>
             )}
+
+            <div className="flex justify-between items-center mb-6">
+              <div className="flex items-center space-x-4">
+                <input
+                  type="text"
+                  value={''}
+                  onChange={(e) => {}}
+                  placeholder="بحث..."
+                  className="border rounded px-3 py-2"
+                />
+              </div>
+              <div className="text-right">
+                <h2 className="text-xl font-semibold">قائمة المشتريات</h2>
+                <p className="text-lg">إجمالي المشتريات: {totalPurchases} ج.م</p>
+              </div>
+            </div>
 
             <table className="w-full text-right">
               <thead>

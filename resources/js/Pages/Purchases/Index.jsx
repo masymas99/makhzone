@@ -24,7 +24,7 @@ export default function PurchasesIndex() {
         }
     };
 
-    const totalPurchases = purchases.reduce((sum, purchase) => sum + purchase.amount, 0);
+    const totalPurchases = purchases.reduce((sum, purchase) => sum + parseFloat(purchase.amount), 0).toFixed(2);
     const todayPurchases = purchases.filter(purchase => new Date(purchase.date).toDateString() === new Date().toDateString()).length;
 
     return (
@@ -38,7 +38,7 @@ export default function PurchasesIndex() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                             <div className="bg-gray-50 p-4 rounded-lg">
                                 <h3 className="text-gray-500 text-sm">إجمالي المشتريات</h3>
-                                <p className="text-2xl font-bold">{totalPurchases.toLocaleString('ar-EG')} ج.م</p>
+                                <p className="text-2xl font-bold">{parseFloat(totalPurchases).toLocaleString('ar-EG')} ج.م</p>
                             </div>
                             <div className="bg-gray-50 p-4 rounded-lg">
                                 <h3 className="text-gray-500 text-sm">المشتريات اليوم</h3>

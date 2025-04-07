@@ -13,13 +13,23 @@ class ProductsController extends Controller
 {
     public function index()
     {
-        $products = Product::with('inventoryBatches')
-            ->latest()
-            ->paginate(10);
+        $products = Product::with([
+            'inventoryBatches' => function ($query) {
+                $query->orderBy('PurchaseDate', 'desc');
+            },
+            'purchases' => function ($query) {
+                $query->orderBy('PurchaseDate', 'desc');
+            }
+        ])
+        ->latest()
+        ->paginate(10);
+
+        $purchases = Purchase::orderBy('PurchaseDate', 'desc')->get();
 
         return Inertia::render('Products/Index', [
             'products' => $products->items(),
             'links' => $products->links(),
+            'purchases' => $purchases,
         ]);
     }
 
@@ -46,38 +56,33 @@ class ProductsController extends Controller
             if ($validated['product_id']) {
                 $product = Product::lockForUpdate()->findOrFail($validated['product_id']);
                 
-                // Calculate new average cost
                 $newQuantity = $validated['StockQuantity'];
                 $newCost = $validated['UnitCost'];
-                $currentQuantity = $product->StockQuantity;
                 
-                if ($currentQuantity > 0) {
-                    // Calculate weighted average cost
-                    $totalCost = ($currentQuantity * $product->UnitCost) + ($newQuantity * $newCost);
-                    $newAverageCost = $totalCost / ($currentQuantity + $newQuantity);
-                    $product->UnitCost = $newAverageCost;
-                } else {
-                    $product->UnitCost = $newCost;
-                }
+                // Calculate new average cost
+                $totalCost = ($product->StockQuantity * $product->UnitCost) + ($newQuantity * $newCost);
+                $newAverageCost = $totalCost / ($product->StockQuantity + $newQuantity);
 
                 $product->StockQuantity += $newQuantity;
+                $product->UnitCost = $newAverageCost;
                 $product->save();
 
-                // Generate batch number first
+                // Generate batch number
                 $batchNumber = 'ADDITION-' . now()->format('YmdHis');
 
-                // Create purchase record first to get PurchaseID
+                // Create purchase record with correct TotalAmount
                 $purchase = Purchase::create([
                     'ProductID' => $product->ProductID,
                     'Quantity' => $newQuantity,
                     'UnitCost' => $newCost,
-                    'TotalAmount' => $newQuantity * $newCost,
+                    'TotalAmount' => round($newQuantity * $newCost, 2),
                     'BatchNumber' => $batchNumber,
                     'PurchaseDate' => now(),
                     'SupplierName' => $validated['SupplierName'] ?? 'غير محدد',
+                    'Notes' => 'إضافة كمية جديدة للمنتج',
                 ]);
 
-                // Create inventory batch with PurchaseID and BatchNumber
+                // Create inventory batch
                 InventoryBatch::create([
                     'ProductID' => $product->ProductID,
                     'PurchaseID' => $purchase->PurchaseID,
@@ -100,21 +105,22 @@ class ProductsController extends Controller
                     'IsActive' => $validated['IsActive'] ?? true,
                 ]);
 
-                // Generate batch number first
+                // Generate batch number
                 $batchNumber = 'INIT-' . now()->format('YmdHis');
 
-                // Create purchase record first to get PurchaseID
+                // Create purchase record with correct TotalAmount
                 $purchase = Purchase::create([
                     'ProductID' => $product->ProductID,
                     'Quantity' => $validated['StockQuantity'],
                     'UnitCost' => $validated['UnitCost'],
-                    'TotalAmount' => $validated['StockQuantity'] * $validated['UnitCost'],
+                    'TotalAmount' => round($validated['StockQuantity'] * $validated['UnitCost'], 2),
                     'BatchNumber' => $batchNumber,
                     'PurchaseDate' => now(),
                     'SupplierName' => $validated['SupplierName'] ?? 'غير محدد',
+                    'Notes' => 'إضافة منتج جديد',
                 ]);
 
-                // Create initial inventory batch with PurchaseID and BatchNumber
+                // Create initial inventory batch
                 InventoryBatch::create([
                     'ProductID' => $product->ProductID,
                     'PurchaseID' => $purchase->PurchaseID,

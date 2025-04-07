@@ -65,4 +65,9 @@ class Product extends Model
     {
         return $this->hasMany(InventoryBatch::class, 'ProductID', 'ProductID');
     }
+
+    public function purchases()
+    {
+        return $this->hasMany(Purchase::class, 'ProductID', 'ProductID');
+    }
 }      

@@ -13,24 +13,21 @@ return new class extends Migration
         Schema::dropIfExists('purchase_details');
         Schema::dropIfExists('purchases');
 
-        // Create new purchases table without foreign key first
+        // Create purchases table
         Schema::create('purchases', function (Blueprint $table) {
             $table->id('PurchaseID');
-            $table->foreignId('SupplierID')->nullable();
-            $table->string('SupplierName', 255)->nullable();
-            $table->date('PurchaseDate');
+            $table->foreignId('ProductID')->nullable()->constrained('products', 'ProductID')->onDelete('cascade');
+            $table->integer('Quantity')->default(0);
+            $table->decimal('UnitCost', 10, 2)->default(0);
             $table->decimal('TotalAmount', 12, 2)->default(0);
+            $table->string('BatchNumber')->nullable();
+            $table->timestamp('PurchaseDate')->useCurrent();
+            $table->string('SupplierName')->nullable();
+            $table->text('Notes')->nullable();
             $table->timestamps();
         });
 
-        // Add foreign key constraint after suppliers table exists
-        Schema::table('purchases', function (Blueprint $table) {
-            $table->foreign('SupplierID', 'purchases_supplier_foreign')
-                ->references('SupplierID')->on('suppliers')
-                ->onDelete('cascade');
-        });
-
-        // Create inventory batches table without foreign keys first
+        // Create inventory batches table
         Schema::create('inventory_batches', function (Blueprint $table) {
             $table->id('BatchID');
             $table->foreignId('ProductID')->constrained('products', 'ProductID')->onDelete('cascade');
