@@ -17,8 +17,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/sales', [SalesController::class, 'store'])->name('sales.store');
     Route::get('/sales/{sale}', [SalesController::class, 'show'])->name('sales.show');
 
+    // Products Routes
+    Route::resource('products', \App\Http\Controllers\ProductsController::class);
+
     // باقي الراوتس لو عاوز تحتفظ بيهم
-    Route::resource('products', App\Http\Controllers\ProductController::class);
     Route::resource('traders', App\Http\Controllers\TraderController::class);
     Route::resource('purchases', App\Http\Controllers\PurchaseController::class);
     Route::resource('expenses', App\Http\Controllers\ExpenseController::class);

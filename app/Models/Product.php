@@ -19,6 +19,13 @@ class Product extends Model
         'IsActive'
     ];
 
+    protected $casts = [
+        'StockQuantity' => 'integer',
+        'UnitPrice' => 'decimal:2',
+        'UnitCost' => 'decimal:2',
+        'IsActive' => 'boolean'
+    ];
+
     public function saleDetails()
     {
         return $this->hasMany(SaleDetail::class, 'ProductID');
@@ -29,9 +36,33 @@ class Product extends Model
         return $this->hasMany(PurchaseDetail::class, 'ProductID');
     }
 
-    // if ($this->StockQuantity > 0) {
-    //     $this->AverageCost = $this->calculateAverageCost();
-    //     $this->save();
-    // }
+    public function calculateCurrentCost()
+    {
+        if ($this->StockQuantity <= 0) {
+            return 0;
+        }
+        return $this->UnitCost;
+    }
+
+    public function updateCost($newQuantity, $newUnitCost)
+    {
+        if ($this->StockQuantity > 0) {
+            // Calculate weighted average cost
+            $totalCost = ($this->StockQuantity * $this->UnitCost) + ($newQuantity * $newUnitCost);
+            $newAverageCost = $totalCost / ($this->StockQuantity + $newQuantity);
+            
+            $this->UnitCost = $newAverageCost;
+        } else {
+            // First purchase of this product
+            $this->UnitCost = $newUnitCost;
+        }
+        
+        $this->StockQuantity += $newQuantity;
+        $this->save();
+    }
+
+    public function inventoryBatches()
+    {
+        return $this->hasMany(InventoryBatch::class, 'ProductID', 'ProductID');
+    }
 }      
-    

@@ -3,7 +3,7 @@ import { Head, useForm, usePage } from '@inertiajs/react';
 import Navbar from '@/Shared/Navbar';
 
 export default function ProductsIndex() {
-  const { products } = usePage().props;
+  const { products, links } = usePage().props;
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -15,7 +15,9 @@ export default function ProductsIndex() {
     UnitPrice: 0,
     UnitCost: 0,
     IsActive: true,
-    description: ''
+    description: '',
+    product_id: null,
+    SupplierName: ''
   });
 
   // Initialize form data when editing
@@ -28,14 +30,77 @@ export default function ProductsIndex() {
       setData('UnitCost', selectedProduct.UnitCost);
       setData('IsActive', selectedProduct.IsActive);
       setData('description', selectedProduct.description || '');
+      setData('product_id', selectedProduct.ProductID);
+      setData('SupplierName', ''); // Reset supplier name for new quantity
     }
   }, [selectedProduct, setData]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    selectedProduct 
-      ? put(route('products.update', selectedProduct.ProductID)) 
-      : post(route('products.store'));
+    
+    const data = {
+      ProductName: formData.ProductName,
+      Category: formData.Category,
+      StockQuantity: formData.StockQuantity,
+      UnitCost: formData.UnitCost,
+      UnitPrice: formData.UnitPrice,
+      IsActive: formData.IsActive,
+      product_id: formData.product_id,
+      SupplierName: formData.SupplierName
+    };
+
+    if (formData.product_id) {
+      post(route('products.store'), data, {
+        onSuccess: () => {
+          setShowCreateModal(false);
+          setSelectedProduct(null);
+          setData({ product_id: null });
+        },
+        onError: (errors) => {
+          console.error('Validation errors:', errors);
+        }
+      });
+    } else {
+      post(route('products.store'), data, {
+        onSuccess: () => {
+          setShowCreateModal(false);
+          setSelectedProduct(null);
+          setData({ product_id: null });
+        },
+        onError: (errors) => {
+          console.error('Validation errors:', errors);
+        }
+      });
+    }
+  };
+
+  const handleAddQuantity = (product) => {
+    setSelectedProduct(product);
+    setShowCreateModal(true);
+    setData({
+      ProductName: product.ProductName,
+      Category: product.Category,
+      StockQuantity: 0,
+      UnitCost: 0,
+      UnitPrice: product.UnitPrice,
+      IsActive: product.IsActive,
+      description: product.description || '',
+      product_id: product.ProductID,
+      SupplierName: '' // Reset supplier name for new quantity
+    });
+  };
+
+  const handleDelete = (id) => {
+    if (window.confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
+      destroy(route('products.destroy', id), {
+        onSuccess: () => {
+          console.log('Product deleted successfully');
+        },
+        onError: (errors) => {
+          console.error('Delete error:', errors);
+        }
+      });
+    }
   };
 
   return (
@@ -47,25 +112,39 @@ export default function ProductsIndex() {
           <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
             <div className="flex justify-between mb-6">
               <h2 className="text-xl font-semibold">قائمة المنتجات</h2>
-              <button
-                onClick={() => {
-                  setShowCreateModal(true);
-                  setSelectedProduct(null);
-                  setData({
-                    ProductName: '',
-                    Category: 'أغذية',
-                    StockQuantity: 0,
-                    UnitPrice: 0,
-                    UnitCost: 0,
-                    IsActive: true,
-                    description: ''
-                  });
-                }}
-                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-              >
-                إضافة منتج جديد
-              </button>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => {
+                    setShowCreateModal(true);
+                    setSelectedProduct(null);
+                    setData({
+                      ProductName: '',
+                      Category: 'أغذية',
+                      StockQuantity: 0,
+                      UnitPrice: 0,
+                      UnitCost: 0,
+                      IsActive: true,
+                      description: '',
+                      product_id: null,
+                      SupplierName: ''
+                    });
+                  }}
+                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                >
+                  إضافة منتج جديد
+                </button>
+              </div>
             </div>
+
+            {errors && Object.keys(errors).length > 0 && (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                <ul>
+                  {Object.entries(errors).map(([key, message]) => (
+                    <li key={key}>{message}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             <table className="w-full text-right">
               <thead>
@@ -80,7 +159,7 @@ export default function ProductsIndex() {
                 </tr>
               </thead>
               <tbody>
-                {products.map((product) => (
+                {products && products.map((product) => (
                   <tr key={product.ProductID} className="border-b">
                     <td className="py-3">{product.ProductName}</td>
                     <td className="py-3">{product.Category}</td>
@@ -89,6 +168,12 @@ export default function ProductsIndex() {
                     <td className="py-3">{product.UnitCost}</td>
                     <td className="py-3">{product.IsActive ? 'نشط' : 'غير نشط'}</td>
                     <td className="py-3 space-x-2">
+                      <button
+                        onClick={() => handleAddQuantity(product)}
+                        className="text-green-600 hover:text-green-800"
+                      >
+                        إضافة كمية
+                      </button>
                       <button
                         onClick={() => {
                           setSelectedProduct(product);
@@ -99,7 +184,7 @@ export default function ProductsIndex() {
                         تعديل
                       </button>
                       <button
-                        onClick={() => destroy(route('products.destroy', product.ProductID))}
+                        onClick={() => handleDelete(product.ProductID)}
                         className="text-red-600 hover:text-red-800"
                       >
                         حذف
@@ -110,59 +195,124 @@ export default function ProductsIndex() {
               </tbody>
             </table>
 
-            {/* Modal for Create/Edit */}
+            {/* Create/Edit Modal */}
             {(showCreateModal || showEditModal) && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                <div className="bg-white p-6 rounded-lg w-96">
+              <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+                <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
                   <h3 className="text-lg font-semibold mb-4">
-                    {selectedProduct ? 'تعديل المنتج' : 'إضافة منتج جديد'}
+                    {formData.product_id ? 'إضافة كمية لمنتج' : 'إضافة/تعديل منتج'}
                   </h3>
+                  
                   <form onSubmit={handleSubmit}>
+                    {formData.product_id && (
+                      <div className="mb-4">
+                        <label className="block mb-2">المنتج الحالي</label>
+                        <div className="p-2 border rounded bg-gray-50">
+                          {selectedProduct?.ProductName}
+                        </div>
+                      </div>
+                    )}
+
                     <div className="mb-4">
                       <label className="block mb-2">اسم المنتج</label>
                       <input
                         type="text"
                         value={formData.ProductName}
                         onChange={(e) => setData('ProductName', e.target.value)}
+                        disabled={formData.product_id}
+                        className="w-full p-2 border rounded"
                       />
+                      {errors?.ProductName && (
+                        <p className="text-red-500 text-sm mt-1">{errors.ProductName}</p>
+                      )}
+                    </div>
+
+                    <div className="mb-4">
                       <label className="block mb-2">الفئة</label>
                       <select
                         value={formData.Category}
                         onChange={(e) => setData('Category', e.target.value)}
+                        disabled={formData.product_id}
+                        className="w-full p-2 border rounded"
                       >
                         <option value="أغذية">أغذية</option>
                         <option value="مشروبات">مشروبات</option>
                         <option value="مواد تنظيف">مواد تنظيف</option>
                       </select>
-                      <label className="block mb-2">الكمية في المخزن</label>
+                      {errors?.Category && (
+                        <p className="text-red-500 text-sm mt-1">{errors.Category}</p>
+                      )}
+                    </div>
+
+                    <div className="mb-4">
+                      <label className="block mb-2">الكمية</label>
                       <input
                         type="number"
                         value={formData.StockQuantity}
                         onChange={(e) => setData('StockQuantity', e.target.value)}
+                        className="w-full p-2 border rounded"
                       />
-                      <label className="block mb-2">سعر الوحدة</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={formData.UnitPrice}
-                        onChange={(e) => setData('UnitPrice', e.target.value)}
-                      />
+                      {errors?.StockQuantity && (
+                        <p className="text-red-500 text-sm mt-1">{errors.StockQuantity}</p>
+                      )}
+                    </div>
+
+                    <div className="mb-4">
                       <label className="block mb-2">تكلفة الوحدة</label>
                       <input
                         type="number"
                         step="0.01"
                         value={formData.UnitCost}
                         onChange={(e) => setData('UnitCost', e.target.value)}
+                        className="w-full p-2 border rounded"
                       />
+                      {errors?.UnitCost && (
+                        <p className="text-red-500 text-sm mt-1">{errors.UnitCost}</p>
+                      )}
+                    </div>
+
+                    <div className="mb-4">
+                      <label className="block mb-2">سعر الوحدة</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={formData.UnitPrice}
+                        onChange={(e) => setData('UnitPrice', e.target.value)}
+                        className="w-full p-2 border rounded"
+                      />
+                      {errors?.UnitPrice && (
+                        <p className="text-red-500 text-sm mt-1">{errors.UnitPrice}</p>
+                      )}
+                    </div>
+
+                    <div className="mb-4">
+                      <label className="block mb-2">اسم المورد</label>
+                      <input
+                        type="text"
+                        value={formData.SupplierName}
+                        onChange={(e) => setData('SupplierName', e.target.value)}
+                        className="w-full p-2 border rounded"
+                      />
+                      {errors?.SupplierName && (
+                        <p className="text-red-500 text-sm mt-1">{errors.SupplierName}</p>
+                      )}
+                    </div>
+
+                    <div className="mb-4">
                       <label className="block mb-2">الحالة</label>
                       <select
                         value={formData.IsActive}
                         onChange={(e) => setData('IsActive', e.target.value === 'true')}
+                        className="w-full p-2 border rounded"
                       >
                         <option value={true}>نشط</option>
                         <option value={false}>غير نشط</option>
                       </select>
+                      {errors?.IsActive && (
+                        <p className="text-red-500 text-sm mt-1">{errors.IsActive}</p>
+                      )}
                     </div>
+
                     <div className="mb-4">
                       <label className="block mb-2">الوصف</label>
                       <textarea
@@ -171,6 +321,7 @@ export default function ProductsIndex() {
                         className="w-full p-2 border rounded"
                       />
                     </div>
+
                     <div className="flex justify-end space-x-2">
                       <button
                         type="button"
@@ -178,6 +329,7 @@ export default function ProductsIndex() {
                           setShowCreateModal(false);
                           setShowEditModal(false);
                           setSelectedProduct(null);
+                          setData({ product_id: null });
                         }}
                         className="px-4 py-2 border rounded"
                       >

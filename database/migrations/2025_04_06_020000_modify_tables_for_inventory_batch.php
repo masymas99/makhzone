@@ -17,9 +17,9 @@ return new class extends Migration
         Schema::create('purchases', function (Blueprint $table) {
             $table->id('PurchaseID');
             $table->foreignId('SupplierID')->nullable();
-            $table->string('SupplierName', 255);
+            $table->string('SupplierName', 255)->nullable();
             $table->date('PurchaseDate');
-            $table->decimal('TotalAmount', 12, 2);
+            $table->decimal('TotalAmount', 12, 2)->default(0);
             $table->timestamps();
         });
 
@@ -33,36 +33,23 @@ return new class extends Migration
         // Create inventory batches table without foreign keys first
         Schema::create('inventory_batches', function (Blueprint $table) {
             $table->id('BatchID');
-            $table->foreignId('ProductID');
-            $table->foreignId('PurchaseID');
+            $table->foreignId('ProductID')->constrained('products', 'ProductID')->onDelete('cascade');
+            $table->foreignId('PurchaseID')->nullable()->constrained('purchases', 'PurchaseID')->onDelete('cascade');
             $table->string('BatchNumber')->unique();
-            $table->integer('Quantity');
-            $table->decimal('UnitCost', 10, 2);
-            $table->date('PurchaseDate');
+            $table->integer('Quantity')->default(0);
+            $table->decimal('UnitCost', 10, 2)->default(0);
+            $table->timestamp('PurchaseDate')->useCurrent();
             $table->timestamps();
-        });
-
-        // Add foreign key constraints to inventory batches
-        Schema::table('inventory_batches', function (Blueprint $table) {
-            $table->foreign('ProductID')
-                ->references('ProductID')
-                ->on('products')
-                ->onDelete('cascade');
-
-            $table->foreign('PurchaseID')
-                ->references('PurchaseID')
-                ->on('purchases')
-                ->onDelete('cascade');
         });
 
         // Create purchase details table
         Schema::create('purchase_details', function (Blueprint $table) {
             $table->id('PurchaseDetailID');
-            $table->foreignId('PurchaseID')->references('PurchaseID')->on('purchases');
-            $table->foreignId('ProductID')->references('ProductID')->on('products');
-            $table->integer('Quantity');
-            $table->decimal('UnitCost', 10, 2);
-            $table->decimal('SubTotal', 12, 2);
+            $table->foreignId('PurchaseID')->constrained('purchases', 'PurchaseID')->onDelete('cascade');
+            $table->foreignId('ProductID')->constrained('products', 'ProductID')->onDelete('cascade');
+            $table->integer('Quantity')->default(0);
+            $table->decimal('UnitCost', 10, 2)->default(0);
+            $table->decimal('SubTotal', 12, 2)->default(0);
             $table->timestamps();
         });
     }
