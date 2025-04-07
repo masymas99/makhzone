@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Head, usePage } from '@inertiajs/react';
+import { Head, usePage, Link } from '@inertiajs/react';
 import Navbar from '@/Shared/Navbar';
 
 export default function PurchasesIndex() {
@@ -45,7 +45,16 @@ export default function PurchasesIndex() {
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
-                        <h2 className="text-xl font-semibold mb-6">قائمة المشتريات</h2>
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-xl font-semibold">قائمة المشتريات</h2>
+                            <Link 
+                                href={route('purchases.create')}
+                                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            >
+                                إضافة مشتريات جديدة
+                            </Link>
+                        </div>
+                        
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                             <div className="bg-gray-50 p-4 rounded-lg">
                                 <h3 className="text-gray-500 text-sm">إجمالي المشتريات</h3>
@@ -56,6 +65,7 @@ export default function PurchasesIndex() {
                                 <p className="text-2xl font-bold">{todayPurchases}</p>
                             </div>
                         </div>
+                        
                         <div className="overflow-x-auto">
                             <table className="w-full text-right">
                                 <thead>

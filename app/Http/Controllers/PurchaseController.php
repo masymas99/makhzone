@@ -55,75 +55,91 @@ class PurchaseController extends Controller
 
     public function create()
     {
-        return Inertia::render('Purchases/Create');
+        $products = Product::select('ProductID', 'ProductName', 'Category', 'UnitCost', 'UnitPrice')
+            ->get();
+
+        return Inertia::render('Purchases/Create', [
+            'products' => $products,
+        ]);
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'supplier_id' => 'required|exists:suppliers,SupplierID',
-            'purchase_date' => 'required|date',
-            'details' => 'required|array|min:1',
-            'details.*.product_id' => 'required|exists:products,ProductID',
-            'details.*.quantity' => 'required|integer|min:1',
-            'details.*.unit_cost' => 'required|numeric|min:0',
+            'supplier_name' => 'required|string|max:255',
+            'products' => 'required|array',
+            'products.*.product_id' => 'nullable|exists:products,ProductID',
+            'products.*.product_name' => 'required_without:products.*.product_id|string|max:255',
+            'products.*.category' => 'required_without:products.*.product_id|string|max:255',
+            'products.*.quantity' => 'required|integer|min:1',
+            'products.*.unit_cost' => 'required|numeric|min:0',
+            'products.*.unit_price' => 'nullable|numeric|min:0',
+            'notes' => 'nullable|string',
         ]);
 
         DB::beginTransaction();
         try {
+            // Create the purchase
             $purchase = Purchase::create([
-                'SupplierID' => $validated['supplier_id'],
-                'SupplierName' => $request->supplier_name,
-                'PurchaseDate' => $validated['purchase_date'],
+                'SupplierName' => $validated['supplier_name'],
+                'PurchaseDate' => now(),
                 'TotalAmount' => 0,
+                'Notes' => $validated['notes'],
             ]);
 
             $totalAmount = 0;
-
-            foreach ($validated['details'] as $detail) {
-                $product = Product::lockForUpdate()->findOrFail($detail['product_id']);
-                
-                // Calculate new average cost
-                $newQuantity = $detail['quantity'];
-                $newCost = $detail['unit_cost'];
-                $currentQuantity = $product->StockQuantity;
-                
-                if ($currentQuantity > 0) {
-                    // Calculate weighted average cost
-                    $totalCost = ($currentQuantity * $product->UnitCost) + ($newQuantity * $newCost);
-                    $newAverageCost = $totalCost / ($currentQuantity + $newQuantity);
+            foreach ($validated['products'] as $productData) {
+                if ($productData['product_id']) {
+                    // Existing product
+                    $product = Product::lockForUpdate()->findOrFail($productData['product_id']);
                     
-                    // Update product cost
+                    $newQuantity = $productData['quantity'];
+                    $newCost = $productData['unit_cost'];
+                    
+                    // Calculate new average cost
+                    $totalCost = ($product->StockQuantity * $product->UnitCost) + ($newQuantity * $newCost);
+                    $newAverageCost = $totalCost / ($product->StockQuantity + $newQuantity);
+
+                    $product->StockQuantity += $newQuantity;
                     $product->UnitCost = $newAverageCost;
+                    $product->UnitPrice = $productData['unit_price'] ?? $product->UnitPrice;
+                    $product->save();
                 } else {
-                    // First purchase of this product
-                    $product->UnitCost = $newCost;
+                    // New product
+                    $product = Product::create([
+                        'ProductName' => $productData['product_name'],
+                        'Category' => $productData['category'],
+                        'StockQuantity' => $productData['quantity'],
+                        'UnitCost' => $productData['unit_cost'],
+                        'UnitPrice' => $productData['unit_price'] ?? 0,
+                        'IsActive' => true,
+                    ]);
                 }
 
                 // Create purchase detail
                 $purchaseDetail = PurchaseDetail::create([
                     'PurchaseID' => $purchase->PurchaseID,
                     'ProductID' => $product->ProductID,
-                    'Quantity' => $detail['quantity'],
-                    'UnitCost' => $newCost,
-                    'SubTotal' => $detail['quantity'] * $newCost,
+                    'Quantity' => $productData['quantity'],
+                    'UnitCost' => $productData['unit_cost'],
+                    'SubTotal' => $productData['quantity'] * $productData['unit_cost'],
                 ]);
 
+                $totalAmount += $purchaseDetail->SubTotal;
+
                 // Create inventory batch
+                $batchNumber = $productData['product_id'] ? 
+                    'ADDITION-' . now()->format('YmdHis') : 
+                    'INIT-' . now()->format('YmdHis');
+
                 InventoryBatch::create([
                     'ProductID' => $product->ProductID,
                     'PurchaseID' => $purchase->PurchaseID,
-                    'BatchNumber' => 'BATCH-' . $purchase->PurchaseID . '-' . $purchaseDetail->PurchaseDetailID,
-                    'Quantity' => $detail['quantity'],
-                    'UnitCost' => $newCost,
-                    'PurchaseDate' => $purchase->PurchaseDate,
+                    'BatchNumber' => $batchNumber,
+                    'Quantity' => $productData['quantity'],
+                    'UnitCost' => $productData['unit_cost'],
+                    'PurchaseDate' => now(),
                 ]);
-
-                // Update product stock
-                $product->StockQuantity += $detail['quantity'];
-                $product->save();
-
-                $totalAmount += $detail['quantity'] * $newCost;
             }
 
             // Update purchase total amount
@@ -131,11 +147,11 @@ class PurchaseController extends Controller
             $purchase->save();
 
             DB::commit();
-            return redirect()->route('purchases.index')->with('success', 'تم إضافة المشتريات بنجاح');
-
+            return redirect()->route('purchases.index')
+                ->with('success', 'تم إضافة المشتريات بنجاح');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->withErrors(['error' => $e->getMessage()]);
+            return back()->withInput()->withErrors(['error' => $e->getMessage()]);
         }
     }
 
