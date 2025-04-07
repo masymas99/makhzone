@@ -13,7 +13,12 @@ class Purchase extends Model
     protected $fillable = [
         'SupplierID',
         'PurchaseDate',
-        'TotalAmount'
+        'TotalAmount',
+        'BatchNumber',
+        'SupplierName',
+        'Notes',
+        'created_at',
+        'updated_at'
     ];
 
     public function supplier()

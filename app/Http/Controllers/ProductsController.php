@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\InventoryBatch;
 use App\Models\Purchase;
+use App\Models\PurchaseDetail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -67,20 +68,28 @@ class ProductsController extends Controller
                 $product->UnitCost = $newAverageCost;
                 $product->save();
 
-                // Generate batch number
-                $batchNumber = 'ADDITION-' . now()->format('YmdHis');
-
-                // Create purchase record with correct TotalAmount
+                // Create purchase
                 $purchase = Purchase::create([
+                    'SupplierName' => $validated['SupplierName'] ?? 'غير محدد',
+                    'PurchaseDate' => now(),
+                    'TotalAmount' => 0, // Will be updated after details are added
+                ]);
+
+                // Create purchase detail
+                $purchaseDetail = PurchaseDetail::create([
+                    'PurchaseID' => $purchase->PurchaseID,
                     'ProductID' => $product->ProductID,
                     'Quantity' => $newQuantity,
                     'UnitCost' => $newCost,
-                    'TotalAmount' => round($newQuantity * $newCost, 2),
-                    'BatchNumber' => $batchNumber,
-                    'PurchaseDate' => now(),
-                    'SupplierName' => $validated['SupplierName'] ?? 'غير محدد',
-                    'Notes' => 'إضافة كمية جديدة للمنتج',
+                    'SubTotal' => $newQuantity * $newCost,
                 ]);
+
+                // Update purchase total amount
+                $purchase->TotalAmount = $purchaseDetail->SubTotal;
+                $purchase->save();
+
+                // Generate batch number
+                $batchNumber = 'ADDITION-' . now()->format('YmdHis');
 
                 // Create inventory batch
                 InventoryBatch::create([
@@ -105,20 +114,28 @@ class ProductsController extends Controller
                     'IsActive' => $validated['IsActive'] ?? true,
                 ]);
 
-                // Generate batch number
-                $batchNumber = 'INIT-' . now()->format('YmdHis');
-
-                // Create purchase record with correct TotalAmount
+                // Create purchase
                 $purchase = Purchase::create([
+                    'SupplierName' => $validated['SupplierName'] ?? 'غير محدد',
+                    'PurchaseDate' => now(),
+                    'TotalAmount' => 0, // Will be updated after details are added
+                ]);
+
+                // Create purchase detail
+                $purchaseDetail = PurchaseDetail::create([
+                    'PurchaseID' => $purchase->PurchaseID,
                     'ProductID' => $product->ProductID,
                     'Quantity' => $validated['StockQuantity'],
                     'UnitCost' => $validated['UnitCost'],
-                    'TotalAmount' => round($validated['StockQuantity'] * $validated['UnitCost'], 2),
-                    'BatchNumber' => $batchNumber,
-                    'PurchaseDate' => now(),
-                    'SupplierName' => $validated['SupplierName'] ?? 'غير محدد',
-                    'Notes' => 'إضافة منتج جديد',
+                    'SubTotal' => $validated['StockQuantity'] * $validated['UnitCost'],
                 ]);
+
+                // Update purchase total amount
+                $purchase->TotalAmount = $purchaseDetail->SubTotal;
+                $purchase->save();
+
+                // Generate batch number
+                $batchNumber = 'INIT-' . now()->format('YmdHis');
 
                 // Create initial inventory batch
                 InventoryBatch::create([

@@ -21,18 +21,36 @@ class PurchaseController extends Controller
 
     public function index()
     {
-        $purchases = $this->purchase->with(['supplier'])->get()->map(function ($purchase) {
-            return [
-                'id' => $purchase->PurchaseID,
-                'date' => $purchase->PurchaseDate,
-                'amount' => $purchase->TotalAmount,
-                'invoice_number' => $purchase->InvoiceNumber ?? '',
-                'trader' => $purchase->supplier ? $purchase->supplier->Name : '',
-                'status' => $purchase->Status ?? 'unpaid'
-            ];
-        });
+        $purchases = $this->purchase->with([
+            'supplier',
+            'purchaseDetails' => function ($query) {
+                $query->with('product:ProductID,ProductName,UnitCost');
+            }
+        ])->get();
 
-        return Inertia::render('Purchases/Index', ['purchases' => $purchases]);
+        return Inertia::render('Purchases/Index', [
+            'purchases' => $purchases->map(function ($purchase) {
+                return [
+                    'id' => $purchase->PurchaseID,
+                    'purchase_date' => $purchase->PurchaseDate,
+                    'total_amount' => $purchase->TotalAmount,
+                    'batch_number' => $purchase->BatchNumber,
+                    'supplier_name' => $purchase->supplier ? $purchase->supplier->Name : $purchase->SupplierName,
+                    'notes' => $purchase->Notes,
+                    'created_at' => $purchase->created_at,
+                    'updated_at' => $purchase->updated_at,
+                    'details' => $purchase->purchaseDetails->map(function ($detail) {
+                        return [
+                            'product_id' => $detail->ProductID,
+                            'product_name' => $detail->product ? $detail->product->ProductName : '---',
+                            'quantity' => $detail->Quantity,
+                            'unit_cost' => $detail->UnitCost,
+                            'subtotal' => $detail->SubTotal
+                        ];
+                    })
+                ];
+            })
+        ]);
     }
 
     public function create()

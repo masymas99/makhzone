@@ -4,10 +4,14 @@ import Navbar from '@/Shared/Navbar';
 
 export default function PurchasesIndex() {
     const { purchases } = usePage().props;
-    const [sortField, setSortField] = useState('date');
+    const [sortField, setSortField] = useState('purchase_date');
     const [sortOrder, setSortOrder] = useState('desc');
 
-    const sortedPurchases = purchases.sort((a, b) => {
+    if (!purchases) {
+        return <div className="text-center py-8">جاري التحميل...</div>;
+    }
+
+    const sortedPurchases = [...purchases].sort((a, b) => {
         if (sortOrder === 'asc') {
             return a[sortField] > b[sortField] ? 1 : -1;
         } else {
@@ -24,8 +28,15 @@ export default function PurchasesIndex() {
         }
     };
 
-    const totalPurchases = purchases.reduce((sum, purchase) => sum + parseFloat(purchase.amount), 0).toFixed(2);
-    const todayPurchases = purchases.filter(purchase => new Date(purchase.date).toDateString() === new Date().toDateString()).length;
+    const totalPurchases = purchases.reduce((sum, purchase) => 
+        sum + (purchase?.total_amount ? parseFloat(purchase.total_amount) : 0), 
+        0
+    ).toFixed(2);
+
+    const todayPurchases = purchases.filter(purchase => 
+        purchase?.purchase_date && 
+        new Date(purchase.purchase_date).toDateString() === new Date().toDateString()
+    ).length;
 
     return (
         <>
@@ -49,34 +60,61 @@ export default function PurchasesIndex() {
                             <table className="w-full text-right">
                                 <thead>
                                     <tr className="bg-gray-50">
-                                        <th className="px-6 py-3 cursor-pointer" onClick={() => handleSort('date')}>
-                                            التاريخ {sortField === 'date' && (sortOrder === 'asc' ? '▲' : '▼')}
+                                        <th className="px-6 py-3 cursor-pointer" onClick={() => handleSort('purchase_date')}>
+                                            التاريخ {sortField === 'purchase_date' && (sortOrder === 'asc' ? '▲' : '▼')}
                                         </th>
-                                        <th className="px-6 py-3 cursor-pointer" onClick={() => handleSort('amount')}>
-                                            المبلغ {sortField === 'amount' && (sortOrder === 'asc' ? '▲' : '▼')}
+                                        <th className="px-6 py-3">رقم المنتج</th>
+                                        <th className="px-6 py-3">اسم المنتج</th>
+                                        <th className="px-6 py-3">الكمية</th>
+                                        <th className="px-6 py-3">سعر الوحدة</th>
+                                        <th className="px-6 py-3">المبلغ الفرعي</th>
+                                        <th className="px-6 py-3 cursor-pointer" onClick={() => handleSort('total_amount')}>
+                                            المبلغ الإجمالي {sortField === 'total_amount' && (sortOrder === 'asc' ? '▲' : '▼')}
                                         </th>
-                                        <th className="px-6 py-3">رقم الفاتورة</th>
-                                        <th className="px-6 py-3">التاجر</th>
-                                        <th className="px-6 py-3">الحالة</th>
+                                        <th className="px-6 py-3 cursor-pointer" onClick={() => handleSort('batch_number')}>
+                                            رقم الدفعة {sortField === 'batch_number' && (sortOrder === 'asc' ? '▲' : '▼')}
+                                        </th>
+                                        <th className="px-6 py-3 cursor-pointer" onClick={() => handleSort('supplier_name')}>
+                                            اسم المورد {sortField === 'supplier_name' && (sortOrder === 'asc' ? '▲' : '▼')}
+                                        </th>
+                                        <th className="px-6 py-3 cursor-pointer" onClick={() => handleSort('notes')}>
+                                            الملاحظات {sortField === 'notes' && (sortOrder === 'asc' ? '▲' : '▼')}
+                                        </th>
+                                        <th className="px-6 py-3">تاريخ الإنشاء</th>
+                                        <th className="px-6 py-3">تاريخ التحديث</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {sortedPurchases.map((purchase) => (
-                                        <tr key={purchase.id} className="border-t">
-                                            <td className="px-6 py-4">
-                                                {new Date(purchase.date).toLocaleDateString('ar-EG')}
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                {purchase.amount.toLocaleString('ar-EG')} ج.م
-                                            </td>
-                                            <td className="px-6 py-4">{purchase.invoice_number}</td>
-                                            <td className="px-6 py-4">{purchase.trader}</td>
-                                            <td className="px-6 py-4">
-                                                <span className={`px-2 py-1 rounded ${purchase.status === 'paid' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                                    {purchase.status === 'paid' ? 'مدفوع' : 'غير مدفوع'}
-                                                </span>
-                                            </td>
-                                        </tr>
+                                        <React.Fragment key={purchase.id}>
+                                            <tr className="border-t bg-gray-50">
+                                                <td colSpan={12} className="px-6 py-4 text-lg font-semibold">
+                                                    المشتريات #{purchase.id}
+                                                </td>
+                                            </tr>
+                                            {purchase.details?.map((detail) => (
+                                                <tr key={detail.product_id} className="border-t">
+                                                    <td className="px-6 py-4">
+                                                        {purchase.purchase_date ? new Date(purchase.purchase_date).toLocaleDateString('ar-EG') : '---'}
+                                                    </td>
+                                                    <td className="px-6 py-4">{detail.product_id}</td>
+                                                    <td className="px-6 py-4">{detail.product_name || '---'}</td>
+                                                    <td className="px-6 py-4">{detail.quantity}</td>
+                                                    <td className="px-6 py-4">{detail.unit_cost?.toLocaleString('ar-EG') || '---'} ج.م</td>
+                                                    <td className="px-6 py-4">{detail.subtotal?.toLocaleString('ar-EG') || '---'} ج.م</td>
+                                                    <td className="px-6 py-4">{purchase.total_amount.toLocaleString('ar-EG')} ج.م</td>
+                                                    <td className="px-6 py-4">{purchase.batch_number}</td>
+                                                    <td className="px-6 py-4">{purchase.supplier_name}</td>
+                                                    <td className="px-6 py-4">{purchase.notes || 'لا توجد ملاحظات'}</td>
+                                                    <td className="px-6 py-4">
+                                                        {purchase.created_at ? new Date(purchase.created_at).toLocaleString('ar-EG') : '---'}
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        {purchase.updated_at ? new Date(purchase.updated_at).toLocaleString('ar-EG') : '---'}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </React.Fragment>
                                     ))}
                                 </tbody>
                             </table>
