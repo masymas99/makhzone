@@ -14,7 +14,14 @@ class Sale extends Model
         'TraderID',
         'SaleDate',
         'TotalAmount',
-        'PaidAmount'
+        'PaidAmount',
+        'InvoiceNumber',
+        'Status'
+    ];
+
+    protected $casts = [
+        'TotalAmount' => 'float',
+        'PaidAmount' => 'float'
     ];
 
     public function trader()
@@ -22,14 +29,25 @@ class Sale extends Model
         return $this->belongsTo(Trader::class, 'TraderID');
     }
 
-    public function saleDetails()
+    public function details()
     {
-        return $this->hasMany(SaleDetail::class, 'SaleID');
+        return $this->hasMany(SaleDetail::class, 'SaleID')
+            ->with('product');
     }
 
     public function payments()
     {
         return $this->hasMany(Payment::class, 'SaleID');
+    }
+
+    public function getStatusTextAttribute()
+    {
+        return $this->Status === 'paid' ? 'مدفوع' : 'غير مدفوع';
+    }
+
+    public function getRemainingAmountAttribute()
+    {
+        return $this->TotalAmount - $this->PaidAmount;
     }
 
     public static function profitSummary()

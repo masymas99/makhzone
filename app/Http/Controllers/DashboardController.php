@@ -23,23 +23,22 @@ class DashboardController extends Controller
         // إجمالي المصروفات
         $totalExpenses = Expense::sum('Amount');
 
-        // حساب الديون بدقة عبر علاقات المدفوعات
-        $tradersDebt = Trader::with(['sales.payments'])->get()
-            ->map(fn($trader) => $trader->sales->sum('TotalAmount')
-                - $trader->sales->flatMap->payments->sum('Amount'))
-            ->sum();
+        // إجمالي الديون
+        $tradersDebt = Trader::sum('TotalPayments');
 
-        // المبيعات الأخيرة مع بيانات التاجر
-        $recentSales = Sale::with(['trader', 'saleDetails.product'])
-            ->latest()
-            ->limit(5)
+        // آخر المبيعات مع تفاصيلها
+        $recentSales = Sale::with(['trader', 'details.product'])
+            ->orderBy('SaleDate', 'desc')
+            ->take(5)
             ->get()
-            ->map(fn($sale) => [
-                'id' => $sale->id,
-                'total' => $sale->TotalAmount,
-                'trader' => $sale->trader->Name,
-                'products' => $sale->saleDetails->map(fn($d) => $d->product->ProductName)
-            ]);
+            ->map(function($sale) {
+                return [
+                    'date' => $sale->SaleDate,
+                    'total' => $sale->TotalAmount,
+                    'trader' => $sale->trader->Name,
+                    'products' => $sale->details->map(fn($d) => $d->product->ProductName)
+                ];
+            });
 
         return Inertia::render('Dashboard', [
             'total_sales' => $totalSales,

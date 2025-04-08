@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Sale;
 use App\Models\SaleDetail;
 use App\Models\Product;
+use App\Models\Payment;
+use App\Models\Trader;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -23,8 +25,8 @@ class SaleController extends Controller
     public function index()
     {
         $sales = $this->sale->with(['trader', 'details.product'])->get();
-        $traders = \App\Models\Trader::all();
-        $products = \App\Models\Product::all();
+        $traders = Trader::all();
+        $products = Product::all();
         return Inertia::render('Sales/Index', [
             'sales' => $sales,
             'traders' => $traders,
@@ -34,8 +36,8 @@ class SaleController extends Controller
 
     public function create()
     {
-        $traders = \App\Models\Trader::all();
-        $products = \App\Models\Product::all();
+        $traders = Trader::all();
+        $products = Product::all();
 
         return Inertia::render('Sales/Create', [
             'traders' => $traders,
@@ -45,27 +47,56 @@ class SaleController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'trader_id' => 'required|exists:traders,TraderID',
-            'products' => 'required|array|min:1',
-            'products.*.product_id' => 'required|exists:products,ProductID',
-            'products.*.quantity' => 'required|integer|min:1',
+        $validated = $request->validate([
+            'TraderID' => ['required', 'exists:traders,TraderID'],
+            'SaleDate' => ['required', 'date'],
+            'SaleDetails' => ['required', 'array'],
+            'PaymentAmount' => ['nullable', 'numeric', 'min:0'],
         ]);
 
-        // Validate stock levels manually
-        foreach ($request->products as $index => $product) {
-            $productModel = Product::find($product['product_id']);
-            if (!$productModel) {
-                return redirect()->back()->withErrors(['products.' . $index . '.product_id' => 'المنتج غير موجود']);
-            }
-
-            if ($product['quantity'] > $productModel->stock) {
-                return redirect()->back()->withErrors(['products.' . $index . '.quantity' => 'الكمية المطلوبة غير متوفرة']);
-            }
+        // Calculate total amount from sale details
+        $totalAmount = 0;
+        foreach ($validated['SaleDetails'] as $detail) {
+            $totalAmount += $detail['Quantity'] * $detail['UnitPrice'];
         }
 
-        // Continue with creating the sale...
-        // Your code to create the sale record
+        // Create the sale
+        $sale = Sale::create([
+            'TraderID' => $validated['TraderID'],
+            'SaleDate' => $validated['SaleDate'],
+            'TotalAmount' => $totalAmount,
+            'PaidAmount' => $validated['PaymentAmount'] ?? 0,
+            'InvoiceNumber' => 'INV-' . Sale::max('SaleID') + 1,
+            'Status' => $totalAmount == ($validated['PaymentAmount'] ?? 0) ? 'paid' : 'unpaid'
+        ]);
+
+        // Create sale details
+        foreach ($validated['SaleDetails'] as $detail) {
+            SaleDetail::create([
+                'SaleID' => $sale->SaleID,
+                'ProductID' => $detail['ProductID'],
+                'Quantity' => $detail['Quantity'],
+                'UnitPrice' => $detail['UnitPrice'],
+            ]);
+        }
+
+        // If payment amount is provided and greater than 0, create a payment
+        if ($validated['PaymentAmount'] ?? 0 > 0) {
+            Payment::create([
+                'TraderID' => $validated['TraderID'],
+                'SaleID' => $sale->SaleID,
+                'Amount' => $validated['PaymentAmount'],
+                'PaymentDate' => now(),
+                'Description' => 'دفع جزء من فاتورة البيع رقم ' . $sale->SaleID,
+            ]);
+
+            // Update the trader's total payments
+            $trader = Trader::findOrFail($validated['TraderID']);
+            $trader->TotalPayments += $validated['PaymentAmount'];
+            $trader->save();
+        }
+
+        return redirect()->route('sales.index')->with('success', 'تم إضافة البيع بنجاح');
     }
 
     public function show($id)

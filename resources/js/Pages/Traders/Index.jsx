@@ -1,200 +1,203 @@
-import React, { useState } from 'react';
-import { Head, Link, useForm, usePage, router } from '@inertiajs/react';
-import Navbar from '@/Shared/Navbar';
+import { Head, usePage } from '@inertiajs/react'
+import { Link } from '@inertiajs/react'
+import Layout from '@/Layouts/Layout'
+import { Inertia } from '@inertiajs/inertia'
+import Navbar from '@/Shared/Navbar'
 
-const Index = ({ traders }) => {
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [formMode, setFormMode] = useState('create');
-  const [currentTrader, setCurrentTrader] = useState({
-    TraderName: '',
-    Phone: '',
-    Address: '',
-    IsActive: true,
-    TraderID: null
-  });
+export default function Index({ traders, loading }) {
+    // Check if there are any traders
+    const hasTraders = traders && traders.length > 0
 
-  const updateEditData = (newData) => {
-    setData({
-      ...data,
-      ...newData,
-      TraderName: newData.TraderName || '',
-      Phone: newData.Phone || '',
-      Address: newData.Address || ''
-    });
-  };
-
-  const { data, setData, post, put, processing, errors } = useForm({
-    ...currentTrader
-  });
-
-
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    post(route('traders.store'));
-  };
-
-  const handleEditSubmit = (e) => {
-    e.preventDefault();
-    put(route('traders.update', { trader: data.TraderID }), {
-  ...data,
-  IsActive: Boolean(data.IsActive)
-}, {
-      onSuccess: () => {
-        setShowEditModal(false);
-        router.reload();
-      },
-      onError: (errors) => {
-        alert('حدث خطأ أثناء الحفظ: ' + JSON.stringify(errors));
-      }
-    });
-  };
-
-  return (
-  <>
-    <Head title="إدارة التجار" />
-    <Navbar />
-    <div className="py-12">
-      <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-        <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-          <div className="flex justify-between items-center p-4 border-b">
-            <h1 className="text-xl font-semibold">إدارة التجار</h1>
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
-            >
-              إضافة تاجر جديد
-            </button>
-            {(showCreateModal || showEditModal) && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                <div className="bg-white p-6 rounded-lg w-96">
-                  <h3 className="text-lg font-semibold mb-4">{showCreateModal ? 'إضافة تاجر جديد' : 'تعديل بيانات التاجر'}</h3>
-                  <form onSubmit={showCreateModal ? handleSubmit : handleEditSubmit}>
-                    <div className="mb-4">
-                      <label className="block mb-2">اسم التاجر</label>
-                      <input
-                        type="text"
-                        value={data.TraderName}
-                        onChange={(e) => setData('TraderName', e.target.value)}
-                        className="w-full p-2 border rounded"
-                      />
-                      {errors.Address && <p className="text-red-500 text-sm">{errors.Address}</p>}
-                      {errors.Phone && <p className="text-red-500 text-sm">{errors.Phone}</p>}
-                      {errors.TraderName && <p className="text-red-500 text-sm">{errors.TraderName}</p>}
-                      <label className="block mb-2">الهاتف</label>
-                      <input
-                        type="text"
-                        value={data.Phone}
-                        onChange={(e) => setData('Phone', e.target.value)}
-                        className="w-full p-2 border rounded"
-                      />
-                      {errors.Phone && <p className="text-red-500 text-sm">{errors.Phone}</p>}
-                      {errors.TraderName && <p className="text-red-500 text-sm">{errors.TraderName}</p>}
-                      <label className="block mb-2">العنوان</label>
-                      <textarea
-                        value={data.Address}
-                        onChange={(e) => showCreateModal ? setData('Address', e.target.value) : updateEditData({ Address: e.target.value })}
-                        className="w-full p-2 border rounded"
-                      />
-                      {errors.Address && <p className="text-red-500 text-sm">{errors.Address}</p>}
-                      {errors.Phone && <p className="text-red-500 text-sm">{errors.Phone}</p>}
-                      {errors.TraderName && <p className="text-red-500 text-sm">{errors.TraderName}</p>}
-                      <label className="block mb-2">الحالة</label>
-                      <select
-                        value={data.IsActive}
-                        onChange={(e) => setData('IsActive', e.target.value === 'true')}
-                        className="w-full p-2 border rounded"
-                      >
-                      {errors.IsActive && <p className="text-red-500 text-sm">{errors.IsActive}</p>}
-                        <option value={true}>نشط</option>
-                        <option value={false}>غير نشط</option>
-                      </select>
-                    </div>
-                    <div className="flex justify-end space-x-2">
-                      <button
-                        type="button"
-                        onClick={() => { setShowCreateModal(false); setShowEditModal(false); }}
-                        className="px-4 py-2 border rounded"
-                      >
-                        إلغاء
-                      </button>
-                      <button
-                        type="submit"
-                        disabled={processing}
-                        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                      >
-                        {processing ? 'جاري الحفظ...' : 'حفظ'}
-                      </button>
-                    </div>
-                  </form>
+    return (
+        <div>
+            <Head title="التجار" />
+            <Navbar />
+            <div className="container mx-auto px-4 py-8 mt-20">
+                <div className="flex justify-between items-center mb-6">
+                    <h1 className="text-2xl font-bold">التجار</h1>
+                    <Link 
+                        href={route('traders.create')} 
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    >
+                        إضافة تاجر جديد
+                    </Link>
                 </div>
-              </div>
-            )}
-          </div>
-          <div className="overflow-x-auto bg-white rounded-lg shadow">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-gray-50">
-                  <th className="px-6 py-3 text-right">الاسم</th>
-                  <th className="px-6 py-3 text-right">الهاتف</th>
-                  <th className="px-6 py-3 text-right">العنوان</th>
-                  <th className="px-6 py-3 text-right">الحالة</th>
-                  <th className="px-6 py-3 text-right">الإجراءات</th>
-                </tr>
-              </thead>
-              <tbody>
-                {traders.map(trader => (
-                  <tr key={trader.TraderID} className="border-t">
-                    <td className="px-6 py-4">{trader.TraderName}</td>
-                    <td className="px-6 py-4">{trader.Phone}</td>
-                    <td className="px-6 py-4 max-w-xs truncate">{trader.Address}</td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2 py-1 rounded ${trader.IsActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                        {trader.IsActive ? 'نشط' : 'غير نشط'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 space-x-2">
-                      <button
-                        onClick={() => {
-                          updateEditData({
-                            TraderName: trader.TraderName,
-                            Phone: trader.Phone,
-                            Address: trader.Address,
-                            IsActive: trader.IsActive,
-                            TraderID: trader.TraderID
-                          });
-                          setShowEditModal(true);
-                        }}
-                        className="text-blue-600 hover:text-blue-900"
-                      >
-                        تعديل
-                      </button>
-                      <button
-                        className="text-red-600 hover:text-red-900"
-                        onClick={() => {
-                          if (confirm('هل أنت متأكد من حذف هذا التاجر؟')) {
-                            Inertia.delete(route('traders.destroy', { trader: trader.TraderID }), {
-  onSuccess: () => router.reload()
-});
-                          }
-                        }}
-                      >
-                        حذف
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+
+                {/* Loading state */}
+                {loading ? (
+                    <div className="text-center py-8">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                        <p className="mt-4 text-gray-600">جاري التحميل...</p>
+                    </div>
+                ) : (
+                    <>
+                        {/* No traders state */}
+                        {!hasTraders && (
+                            <div className="text-center py-8">
+                                <p className="text-gray-500">لا توجد تجار مسجلين حالياً</p>
+                            </div>
+                        )}
+
+                        {/* Traders list */}
+                        {hasTraders && (
+                            <div className="space-y-6">
+                                {traders.map((trader) => (
+                                    <div key={trader.TraderID} className="bg-white rounded-lg shadow p-6">
+                                        {/* Trader Header */}
+                                        <div className="flex justify-between items-center mb-4">
+                                            <div>
+                                                <h2 className="text-xl font-bold">{trader.TraderName}</h2>
+                                                <p className="text-gray-600">{trader.Phone}</p>
+                                                <p className="text-gray-600">{trader.Address}</p>
+                                            </div>
+                                            <div className="flex space-x-4">
+                                                {/* Status Badge */}
+                                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                                    trader.IsActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                                }`}>
+                                                    {trader.IsActive ? 'نشط' : 'غير نشط'}
+                                                </span>
+                                                {/* Financial Status Badge */}
+                                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                                    trader.balance > 0 ? 'bg-red-100 text-red-800' : 
+                                                    trader.balance < 0 ? 'bg-blue-100 text-blue-800' : 
+                                                    'bg-green-100 text-green-800'
+                                                }`}>
+                                                    {trader.financialStatus}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Account Summary */}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                                            <div className="bg-gray-50 p-4 rounded-lg">
+                                                <h3 className="text-sm font-medium text-gray-500">المبيعات الإجمالية</h3>
+                                                <p className="text-xl font-bold">{trader.totalSales?.toLocaleString() || '0'} ر.س</p>
+                                            </div>
+                                            <div className="bg-gray-50 p-4 rounded-lg">
+                                                <h3 className="text-sm font-medium text-gray-500">المشتريات الإجمالية</h3>
+                                                <p className="text-xl font-bold">{trader.totalPurchases?.toLocaleString() || '0'} ر.س</p>
+                                            </div>
+                                            <div className="bg-gray-50 p-4 rounded-lg">
+                                                <h3 className="text-sm font-medium text-gray-500">المدفوعات الإجمالية</h3>
+                                                <p className="text-xl font-bold">{trader.totalPayments?.toLocaleString() || '0'} ر.س</p>
+                                            </div>
+                                            <div className="bg-gray-50 p-4 rounded-lg">
+                                                <h3 className="text-sm font-medium text-gray-500">الرصيد</h3>
+                                                <p className={`text-xl font-bold ${
+                                                    trader.balance > 0 ? 'text-red-600' : 
+                                                    trader.balance < 0 ? 'text-blue-600' : 
+                                                    'text-green-600'
+                                                }`}>
+                                                    {trader.balance?.toLocaleString() || '0'} ر.س
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* Recent Sales */}
+                                        <div className="mt-4">
+                                            <h3 className="text-lg font-medium mb-2">آخر المبيعات</h3>
+                                            {trader.recentSales && trader.recentSales.length > 0 ? (
+                                                trader.recentSales.map((saleData, index) => (
+                                                    <div key={index} className="flex items-center justify-between border-b border-gray-200 py-2">
+                                                        <div>
+                                                            <div className="text-sm text-gray-600">
+                                                                رقم الفاتورة: {saleData.invoice_number}
+                                                            </div>
+                                                            <div className="text-sm text-gray-600">
+                                                                التاريخ: {new Date(saleData.date).toLocaleDateString('ar-SA')}
+                                                            </div>
+                                                            <div className="text-sm text-gray-600">
+                                                                المبلغ: {saleData.amount?.toLocaleString() || '0'} ر.س
+                                                            </div>
+                                                            <div className="text-sm text-gray-600">
+                                                                الحالة: <span className={`px-2 py-1 rounded ${
+                                                                    saleData.status === 'paid' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                                                }`}>
+                                                                    {saleData.status === 'paid' ? 'مدفوع' : 'غير مدفوع'}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex flex-col space-y-1">
+                                                            {(saleData.products || []).map((product, pIndex) => (
+                                                                <div key={pIndex} className="text-sm text-gray-600">
+                                                                    {product.name || 'غير معروف'} x {product.quantity || 0} = {product.price?.toLocaleString() || '0'} ر.س
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <div className="text-center py-4 text-gray-500">
+                                                    لا توجد مبيعات حالية
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Recent Payments */}
+                                        <div className="mt-4">
+                                            <h3 className="text-lg font-medium mb-2">آخر الدفعات</h3>
+                                            {trader.recentPayments && trader.recentPayments.length > 0 ? (
+                                                trader.recentPayments.map((payment, index) => (
+                                                    <div key={index} className="flex items-center justify-between border-b border-gray-200 py-2">
+                                                        <div>
+                                                            <div className="text-sm text-gray-600">
+                                                                التاريخ: {new Date(payment.date).toLocaleDateString('ar-SA')}
+                                                            </div>
+                                                            <div className="text-sm text-gray-600">
+                                                                المبلغ: {payment.amount?.toLocaleString() || '0'} ر.س
+                                                            </div>
+                                                            <div className="text-sm text-gray-600">
+                                                                الوصف: {payment.description || 'لا يوجد وصف'}
+                                                            </div>
+                                                            {payment.sale_id && (
+                                                                <div className="text-sm text-gray-600">
+                                                                    رقم الفاتورة: {payment.sale_id}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <div className="text-center py-4 text-gray-500">
+                                                    لا توجد دفعات حالية
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Actions */}
+                                        <div className="mt-6 flex justify-end space-x-2">
+                                            <Link 
+                                                href={route('traders.show', trader.TraderID)} 
+                                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                                            >
+                                                عرض التفاصيل
+                                            </Link>
+                                            <Link 
+                                                href={route('traders.edit', trader.TraderID)} 
+                                                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                                            >
+                                                تعديل
+                                            </Link>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    if (confirm('هل أنت متأكد من تعطيل هذا التاجر؟')) {
+                                                        Inertia.delete(route('traders.destroy', trader.TraderID))
+                                                    }
+                                                }}
+                                                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                                            >
+                                                تعطيل
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </>
+                )}
+            </div>
         </div>
-      </div>
-    </div>
-
-  </>
-
-);
+    )
 }
-
-export default Index;

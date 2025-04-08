@@ -36,6 +36,8 @@ return new class extends Migration
             $table->string('TraderName', 255);
             $table->string('Phone', 20);
             $table->text('Address');
+            $table->decimal('Balance', 12, 2)->default(0);
+            $table->decimal('TotalPayments', 12, 2)->default(0);
             $table->boolean('IsActive')->default(true);
             $table->timestamps();
         });
