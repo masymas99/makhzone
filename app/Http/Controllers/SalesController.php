@@ -9,7 +9,6 @@ use App\Models\Trader;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use App\Http\Controllers\FinancialController;
 
 class SalesController extends Controller
 {
@@ -33,6 +32,7 @@ class SalesController extends Controller
     {
         $request->validate([
             'TraderID' => 'required|exists:traders,TraderID',
+            'PaidAmount' => 'required|numeric|min:0',
             'products' => 'required|array',
             'products.*.ProductID' => 'required|exists:products,ProductID',
             'products.*.Quantity' => 'required|numeric|min:1',
@@ -41,15 +41,18 @@ class SalesController extends Controller
         $totalAmount = 0;
         $productsData = $request->input('products');
 
+        // إنشاء الفاتورة مع القيم الأولية
         $sale = Sale::create([
             'InvoiceNumber' => 'INV-' . time(),
             'TraderID' => $request->TraderID,
             'SaleDate' => now(),
             'TotalAmount' => 0,
-            'PaidAmount' => 0,
+            'PaidAmount' => $request->PaidAmount,
             'Status' => 'Pending',
+            'RemainingAmount' => 0, // تهيئة القيمة الأولية
         ]);
 
+        // حساب المبلغ الإجمالي
         foreach ($productsData as $product) {
             $productModel = Product::find($product['ProductID']);
             $subTotal = $product['Quantity'] * $productModel->UnitPrice;
@@ -67,11 +70,19 @@ class SalesController extends Controller
             ]);
         }
 
-        $sale->update(['TotalAmount' => $totalAmount]);
+        // حساب المبلغ المتبقي وتحديث الفاتورة
+        $remainingAmount = $totalAmount - $request->PaidAmount;
+        
+        $sale->update([
+            'TotalAmount' => $totalAmount,
+            'RemainingAmount' => $remainingAmount,
+        ]);
 
-        // تحديث المبلغ المتبقي للتاجر من خلال FinancialController
-        $financialController = new FinancialController();
-        $financialController->updateTraderBalance($request->TraderID, $totalAmount);
+        // تحديث حساب التاجر
+        $trader = Trader::find($request->TraderID);
+        $trader->Balance += $totalAmount;
+        $trader->TotalSales += $totalAmount;
+        $trader->save();
 
         return redirect()->route('sales.index')->with('success', 'تم إنشاء الفاتورة بنجاح');
     }

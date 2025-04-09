@@ -7,6 +7,7 @@ export default function Create() {
     const { traders, products } = usePage().props;
     const { data, setData, post, errors, processing } = useForm({
         TraderID: '',
+        PaidAmount: 0,
         products: [],
     });
 
@@ -44,6 +45,13 @@ export default function Create() {
         return selectedProducts.reduce((total, item) => total + calculateSubTotal(item), 0);
     };
 
+    // حساب المبلغ المتبقي
+    const calculateRemaining = () => {
+        const total = calculateTotal();
+        const paid = parseFloat(data.PaidAmount) || 0;
+        return total - paid;
+    };
+
     // معالجة الإرسال
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -78,6 +86,21 @@ export default function Create() {
                             </select>
                             {errors.TraderID && (
                                 <span className="text-red-500 text-sm mt-1">{errors.TraderID}</span>
+                            )}
+                        </div>
+
+                        {/* المبلغ المدفوع */}
+                        <div className="mb-6">
+                            <label className="block text-gray-700 font-medium mb-2">المبلغ المدفوع</label>
+                            <input
+                                type="number"
+                                value={data.PaidAmount}
+                                onChange={(e) => setData('PaidAmount', e.target.value)}
+                                className="w-full border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                min="0"
+                            />
+                            {errors.PaidAmount && (
+                                <span className="text-red-500 text-sm mt-1">{errors.PaidAmount}</span>
                             )}
                         </div>
 
@@ -187,6 +210,22 @@ export default function Create() {
                                                 </td>
                                                 <td className="p-3 font-bold text-blue-600">
                                                     {calculateTotal()} ج.م
+                                                </td>
+                                            </tr>
+                                            <tr className="bg-gray-100">
+                                                <td colSpan="3" className="p-3 text-right font-bold">
+                                                    المبلغ المدفوع:
+                                                </td>
+                                                <td className="p-3 font-bold text-green-600">
+                                                    {data.PaidAmount} ج.م
+                                                </td>
+                                            </tr>
+                                            <tr className="bg-gray-100">
+                                                <td colSpan="3" className="p-3 text-right font-bold">
+                                                    المبلغ المتبقي:
+                                                </td>
+                                                <td className="p-3 font-bold text-red-600">
+                                                    {calculateRemaining()} ج.م
                                                 </td>
                                             </tr>
                                         </tfoot>

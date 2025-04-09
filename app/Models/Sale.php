@@ -18,7 +18,8 @@ class Sale extends Model
         'TraderID',
         'SaleDate',
         'TotalAmount',
-        'PaidAmount'
+        'PaidAmount',
+        'RemainingAmount'
     ];
 
     protected $casts = [
@@ -31,7 +32,8 @@ class Sale extends Model
     {
         return $this->belongsTo(Trader::class, 'TraderID');
     }
-    
+
+   
 
     public function details(): HasMany
     {

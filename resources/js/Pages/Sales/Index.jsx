@@ -5,11 +5,6 @@ import Navbar from '@/Shared/Navbar';
 export default function Index() {
     const { sales } = usePage().props;
 
-    const formatDate = (dateString) => {
-        const date = new Date(dateString);
-        return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
-    };
-
     return (
         <div className="p-6">
             <Head title="الفواتير المباعة" />
@@ -25,6 +20,8 @@ export default function Index() {
                         <th className="border p-2">التاجر</th>
                         <th className="border p-2">التاريخ</th>
                         <th className="border p-2">الإجمالي</th>
+                        <th className="border p-2">المدفوع</th>
+                        <th className="border p-2">المتبقي</th>
                         <th className="border p-2">الحالة</th>
                     </tr>
                 </thead>
@@ -33,8 +30,12 @@ export default function Index() {
                         <tr key={sale.SaleID}>
                             <td className="border p-2">{sale.InvoiceNumber}</td>
                             <td className="border p-2">{sale.trader.TraderName}</td>
-                            <td className="border p-2">{formatDate(sale.SaleDate)}</td>
+                            <td className="border p-2">{new Date(sale.SaleDate).toLocaleDateString('ar-EG')}</td>
                             <td className="border p-2">{sale.TotalAmount}</td>
+                            <td className="border p-2">{sale.PaidAmount}</td>
+                            <td className="border p-2" style={{ color: sale.RemainingAmount > 0 ? 'red' : 'green' }}>
+                                {sale.RemainingAmount}
+                            </td>
                             <td className="border p-2">{sale.Status}</td>
                         </tr>
                     ))}
