@@ -8,18 +8,20 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::create('sales', function (Blueprint $table) {
-            $table->id('SaleID');
-            $table->string('InvoiceNumber')->unique();
-            $table->dateTime('SaleDate');
-            $table->unsignedBigInteger('CustomerID');
-            $table->decimal('TotalAmount', 12, 2);
-            $table->string('Status')->default('pending');
-            $table->text('Notes')->nullable();
-            $table->timestamps();
+        if (!Schema::hasTable('sales')) {
+            Schema::create('sales', function (Blueprint $table) {
+                $table->id('SaleID');
+                $table->string('InvoiceNumber')->unique();
+                $table->dateTime('SaleDate');
+                $table->unsignedBigInteger('CustomerID');
+                $table->decimal('TotalAmount', 12, 2);
+                $table->string('Status')->default('pending');
+                $table->text('Notes')->nullable();
+                $table->timestamps();
 
-            $table->foreign('CustomerID')->references('id')->on('traders');
-        });
+                $table->foreign('CustomerID')->references('id')->on('traders');
+            });
+        }
     }
 
     public function down()
