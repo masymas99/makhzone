@@ -35,16 +35,15 @@ export default function Index() {
                             <td className="border p-2">{trader.TraderID}</td>
                             <td className="border p-2">{trader.TraderName}</td>
                             <td className="border p-2">{trader.Phone}</td>
-                            <td className="border p-2" style={{ color: trader.balance < 0 ? 'red' : 'green' }}>
+                            <td className="border p-2" style={{ color: trader.Balance < 0 ? 'red' : 'green' }}>
                                 {trader.Balance}
                             </td>
-                            <td className="border p-2" style={{ color: trader.totalSales < 0 ? 'red' : 'green' }}>
+                            <td className="border p-2" style={{ color: trader.TotalSales < 0 ? 'red' : 'green' }}>
                                 {trader.TotalSales}
                             </td>
-                            <td className="border p-2" style={{ color: trader.totalPaid < 0 ? 'red' : 'green' }}>
+                            <td className="border p-2" style={{ color: trader.TotalPayments < 0 ? 'red' : 'green' }}>
                                 {trader.TotalPayments}
                             </td>
-                         
                             <td className="border p-2">{trader.IsActive ? 'نشط' : 'غير نشط'}</td>
                             <td className="border p-2">
                                 <div className="flex gap-2">
