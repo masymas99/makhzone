@@ -4,64 +4,47 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Sale extends Model
 {
     use HasFactory;
 
     protected $primaryKey = 'SaleID';
+    protected $table = 'sales';
+
     protected $fillable = [
         'TraderID',
         'SaleDate',
         'TotalAmount',
-        'PaidAmount',
-        'InvoiceNumber',
-        'Status'
+        'PaidAmount'
     ];
 
     protected $casts = [
-        'TotalAmount' => 'float',
-        'PaidAmount' => 'float'
+        'SaleDate' => 'date',
+        'TotalAmount' => 'decimal:2',
+        'PaidAmount' => 'decimal:2'
     ];
 
-    public function trader()
+    public function trader(): BelongsTo
     {
         return $this->belongsTo(Trader::class, 'TraderID');
     }
+    
 
-    public function details()
+    public function details(): HasMany
     {
-        return $this->hasMany(SaleDetail::class, 'SaleID')
-            ->with('product');
+        return $this->hasMany(SaleDetail::class, 'SaleID');
     }
 
-    public function payments()
+    public function payments(): HasMany
     {
         return $this->hasMany(Payment::class, 'SaleID');
     }
 
-    public function getStatusTextAttribute()
+    public function getStatusAttribute(): string
     {
-        return $this->Status === 'paid' ? 'مدفوع' : 'غير مدفوع';
-    }
-
-    public function getRemainingAmountAttribute()
-    {
-        return $this->TotalAmount - $this->PaidAmount;
-    }
-
-    public static function profitSummary()
-    {
-        $totalSales = self::sum('TotalAmount');
-        $cogs = \App\Models\SaleDetail::join('products', 'sale_details.ProductID', '=', 'products.ProductID')
-            ->sum(\DB::raw('sale_details.Quantity * products.UnitCost'));
-        $totalExpenses = \App\Models\Expense::sum('Amount');
-
-        return [
-            'total_sales' => $totalSales,
-            'cogs' => $cogs,
-            'total_expenses' => $totalExpenses,
-            'profit' => $totalSales - $cogs - $totalExpenses
-        ];
+        return $this->PaidAmount >= $this->TotalAmount ? 'paid' : 'pending';
     }
 }

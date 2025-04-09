@@ -12,7 +12,6 @@ class TraderController extends Controller
     {
         $traders = Trader::with([
             'sales.details.product', 
-            'sales.payments', 
             'payments',
             'financials'
         ])
@@ -49,21 +48,10 @@ class TraderController extends Controller
                             return [
                                 'name' => $detail->product->ProductName,
                                 'quantity' => $detail->Quantity,
-                                'price' => $detail->UnitPrice
+                                'unit_price' => $detail->UnitPrice,
+                                'total' => $detail->UnitPrice * $detail->Quantity
                             ];
                         })
-                    ];
-                });
-
-            $trader->recentPayments = $trader->payments
-                ->sortByDesc('PaymentDate')
-                ->take(5)
-                ->map(function($payment) {
-                    return [
-                        'amount' => $payment->Amount,
-                        'date' => $payment->PaymentDate,
-                        'description' => $payment->Description,
-                        'sale_id' => $payment->SaleID
                     ];
                 });
 
@@ -71,8 +59,7 @@ class TraderController extends Controller
         });
 
         return Inertia::render('Traders/Index', [
-            'traders' => $traders,
-            'loading' => false
+            'traders' => $traders
         ]);
     }
 

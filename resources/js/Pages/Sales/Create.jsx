@@ -1,215 +1,213 @@
 import React, { useState } from 'react';
-import { Head, useForm, usePage } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import Navbar from '@/Shared/Navbar';
-import InputLabel from '@/Components/InputLabel';
-import TextInput from '@/Components/TextInput';
-import PrimaryButton from '@/Components/PrimaryButton';
-import SelectInput from '@/Components/SelectInput';
 
-export default function SalesCreate() {
-    const { data, setData, post, processing, errors } = useForm({
-        trader_id: '',
-        products: [{ product_id: '', quantity: 1 }],
-        payment_amount: '',
+export default function Create() {
+    const { traders, products } = usePage().props;
+    const { data, setData, post, errors, processing } = useForm({
+        TraderID: '',
+        products: [],
     });
 
-    const { props: { traders = [], products = [] } } = usePage();
+    const [selectedProducts, setSelectedProducts] = useState([]);
 
+    // إضافة منتج جديد
     const addProduct = () => {
-        setData('products', [...data.products, { product_id: '', quantity: 1 }]);
+        setSelectedProducts([...selectedProducts, { ProductID: '', Quantity: 1 }]);
     };
 
-    const removeProduct = (index) => {
-        if (data.products.length > 1) {
-            const newProducts = [...data.products];
-            newProducts.splice(index, 1);
-            setData('products', newProducts);
-        }
-    };
-
-    const handleProductSelect = (index, productId) => {
-        const selectedProduct = products.find(p => p.ProductID === parseInt(productId));
-        if (selectedProduct) {
-            const updatedProducts = [...data.products];
-            const productIdNumber = parseInt(productId, 10);
-            updatedProducts[index] = {
-                product_id: productIdNumber,
-                quantity: 1,
-                unit_price: selectedProduct.UnitPrice || 0,
-                stock_quantity: selectedProduct.StockQuantity || 0
-            };
-            setData('products', updatedProducts);
-        }
-    };
-
-    const handleQuantityChange = (index, value) => {
-        const updatedProducts = [...data.products];
-        const currentProduct = updatedProducts[index];
-        const newQuantity = Math.max(Number(value), 1);
-        updatedProducts[index] = {
-            ...currentProduct,
-            quantity: newQuantity
-        };
+    // تحديث بيانات المنتج
+    const updateProduct = (index, field, value) => {
+        const updatedProducts = selectedProducts.map((item, i) =>
+            i === index ? { ...item, [field]: field === 'Quantity' ? parseInt(value) || 1 : value } : item
+        );
+        setSelectedProducts(updatedProducts);
         setData('products', updatedProducts);
     };
 
+    // حذف منتج
+    const removeProduct = (index) => {
+        const updatedProducts = selectedProducts.filter((_, i) => i !== index);
+        setSelectedProducts(updatedProducts);
+        setData('products', updatedProducts);
+    };
+
+    // حساب المبلغ الفرعي لمنتج واحد
+    const calculateSubTotal = (product) => {
+        const item = products.find((p) => p.ProductID == product.ProductID); // استخدام == للتعامل مع أنواع مختلفة
+        return item ? (product.Quantity || 0) * item.UnitPrice : 0;
+    };
+
+    // حساب الإجمالي الكلي
+    const calculateTotal = () => {
+        return selectedProducts.reduce((total, item) => total + calculateSubTotal(item), 0);
+    };
+
+    // معالجة الإرسال
     const handleSubmit = (e) => {
         e.preventDefault();
         post(route('sales.store'), {
-            onSuccess: () => {
-                alert('تمت إضافة الفاتورة بنجاح');
-                setData({
-                    trader_id: '',
-                    products: [{ product_id: '', quantity: 1 }],
-                    payment_amount: '',
-                });
-            },
-            onError: (errors) => {
-                const errorMessages = Object.values(errors).join('. ');
-                alert(`خطأ: ${errorMessages}`);
-            },
+            onSuccess: () => alert('تم حفظ الفاتورة بنجاح!'),
         });
     };
 
-    const calculateTotal = () => {
-        return data.products.reduce((total, product) => {
-            if (!product.unit_price) return total;
-            return total + (Number(product.unit_price) * Number(product.quantity || 0));
-        }, 0);
-    };
-
-    const traderOptions = [{ value: '', label: 'اختر تاجر' }, ...traders.map(t => ({
-        value: t.TraderID,
-        label: t.TraderName,
-        data: t
-    }))];
-
-    const productOptions = [{ value: '', label: 'اختر منتج' }, ...products.map(p => ({
-        value: String(p.ProductID),
-        label: `${p.ProductName} (المتوفر: ${p.StockQuantity || 0}) - ${p.UnitPrice || 0} ر.س/وحدة`,
-        data: p
-    }))];
-
     return (
         <>
-            <Head title="إضافة فاتورة بيع" />
-            <Navbar />
-            <div className="py-12">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
-                        <h2 className="text-xl font-semibold mb-6">إضافة فاتورة بيع جديدة</h2>
+            <Head title="إنشاء فاتورة" />
+            <div className="min-h-screen bg-gray-100">
+                <Navbar />
+                <div className="max-w-4xl mx-auto p-6 sm:p-8">
+                    <h1 className="text-3xl font-bold text-gray-800 mb-6">إنشاء فاتورة جديدة</h1>
 
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                            <div>
-                                <InputLabel htmlFor="trader_id" value="التاجر" />
-                                <SelectInput
-                                    id="trader_id"
-                                    name="trader_id"
-                                    value={data.trader_id}
-                                    onChange={(e) => setData('trader_id', e.target.value)}
-                                    options={traderOptions}
-                                    className="w-full"
-                                    error={errors.trader_id}
-                                />
+                    <form onSubmit={handleSubmit} className="bg-white shadow-lg rounded-lg p-6">
+                        {/* اختيار التاجر */}
+                        <div className="mb-6">
+                            <label className="block text-gray-700 font-medium mb-2">اختر التاجر</label>
+                            <select
+                                value={data.TraderID}
+                                onChange={(e) => setData('TraderID', e.target.value)}
+                                className="w-full border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                                <option value="">اختر تاجر</option>
+                                {traders.map((trader) => (
+                                    <option key={trader.TraderID} value={trader.TraderID}>
+                                        {trader.TraderName}
+                                    </option>
+                                ))}
+                            </select>
+                            {errors.TraderID && (
+                                <span className="text-red-500 text-sm mt-1">{errors.TraderID}</span>
+                            )}
+                        </div>
+
+                        {/* المنتجات */}
+                        <div className="mb-6">
+                            <div className="flex justify-between items-center mb-4">
+                                <h2 className="text-xl font-semibold text-gray-800">المنتجات</h2>
+                                <button
+                                    type="button"
+                                    onClick={addProduct}
+                                    className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+                                >
+                                    + إضافة منتج
+                                </button>
                             </div>
 
-                            {data.products.map((product, index) => (
-                                <div key={index} className="flex space-x-4 items-end">
-                                    <div className="flex-1">
-                                        <InputLabel
-                                            htmlFor={`product_id_${index}`}
-                                            value="المنتج"
-                                        />
-                                        <SelectInput
-                                            id={`product_id_${index}`}
-                                            name={`products[${index}][product_id]`}
-                                            value={product.product_id}
-                                            onChange={(e) => handleProductSelect(index, e.target.value)}
-                                            options={productOptions}
-                                            className="w-full"
-                                            error={errors[`products.${index}.product_id`]}
-                                        />
-                                    </div>
-
-                                    <div className="w-32">
-                                        <InputLabel
-                                            htmlFor={`quantity_${index}`}
-                                            value="الكمية"
-                                        />
-                                        <TextInput
-                                            id={`quantity_${index}`}
-                                            name={`products[${index}][quantity]`}
+                            {selectedProducts.length === 0 ? (
+                                <p className="text-gray-500">لم يتم إضافة منتجات بعد</p>
+                            ) : (
+                                selectedProducts.map((item, index) => (
+                                    <div
+                                        key={index}
+                                        className="flex items-center space-x-4 mb-4 bg-gray-50 p-3 rounded-lg"
+                                    >
+                                        <select
+                                            value={item.ProductID}
+                                            onChange={(e) => updateProduct(index, 'ProductID', e.target.value)}
+                                            className="flex-1 border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
+                                        >
+                                            <option value="">اختر منتج</option>
+                                            {products.map((product) => (
+                                                <option key={product.ProductID} value={product.ProductID}>
+                                                    {product.ProductName} - {product.UnitPrice} ج.م
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <input
                                             type="number"
-                                            value={product.quantity}
-                                            onChange={(e) => handleQuantityChange(index, e.target.value)}
+                                            value={item.Quantity}
+                                            onChange={(e) => updateProduct(index, 'Quantity', e.target.value)}
+                                            className="w-24 border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
                                             min="1"
-                                            max={product.stock_quantity || 1000}
-                                            className="w-full"
-                                            error={errors[`products.${index}.quantity`]}
                                         />
-                                        <span className="text-sm text-gray-500">المتاح: {product.stock_quantity || 0}</span>
-                                    </div>
-
-                                    {data.products.length > 1 && (
                                         <button
                                             type="button"
                                             onClick={() => removeProduct(index)}
                                             className="text-red-500 hover:text-red-700"
                                         >
-                                            حذف
+                                            <svg
+                                                className="w-6 h-6"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth="2"
+                                                    d="M6 18L18 6M6 6l12 12"
+                                                />
+                                            </svg>
                                         </button>
-                                    )}
+                                    </div>
+                                ))
+                            )}
+                        </div>
+
+                        {/* تفاصيل الفاتورة */}
+                        <div className="mb-6">
+                            <h2 className="text-xl font-semibold text-gray-800 mb-4">تفاصيل الفاتورة</h2>
+                            {selectedProducts.length === 0 ? (
+                                <p className="text-gray-500">لا توجد منتجات لعرضها</p>
+                            ) : (
+                                <div className="overflow-x-auto">
+                                    <table className="w-full border-collapse bg-white rounded-lg shadow">
+                                        <thead>
+                                            <tr className="bg-gray-200">
+                                                <th className="p-3 text-right">المنتج</th>
+                                                <th className="p-3 text-right">السعر الوحدة</th>
+                                                <th className="p-3 text-right">الكمية</th>
+                                                <th className="p-3 text-right">المبلغ الفرعي</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {selectedProducts.map((item, index) => {
+                                                const product = products.find((p) => p.ProductID == item.ProductID);
+                                                return (
+                                                    <tr key={index} className="hover:bg-gray-50">
+                                                        <td className="border-t p-3">
+                                                            {product ? product.ProductName : 'غير محدد'}
+                                                        </td>
+                                                        <td className="border-t p-3">
+                                                            {product ? `${product.UnitPrice} ج.م` : '-'}
+                                                        </td>
+                                                        <td className="border-t p-3">{item.Quantity || 0}</td>
+                                                        <td className="border-t p-3 font-medium">
+                                                            {calculateSubTotal(item)} ج.م
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                        <tfoot>
+                                            <tr className="bg-gray-100">
+                                                <td colSpan="3" className="p-3 text-right font-bold">
+                                                    المجموع الإجمالي:
+                                                </td>
+                                                <td className="p-3 font-bold text-blue-600">
+                                                    {calculateTotal()} ج.م
+                                                </td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
                                 </div>
-                            ))}
+                            )}
+                        </div>
 
-                            <div>
-                                <InputLabel htmlFor="payment_amount" value="المبلغ المدفوع" />
-                                <TextInput
-                                    id="payment_amount"
-                                    name="payment_amount"
-                                    value={data.payment_amount}
-                                    onChange={(e) => setData('payment_amount', e.target.value)}
-                                    type="number"
-                                    min="0"
-                                    step="0.01"
-                                    className="w-full"
-                                    error={errors.payment_amount}
-                                />
-                            </div>
-
-                            <div className="flex justify-between items-center">
-                                <div className="text-gray-700">
-                                    <p>المبلغ الإجمالي: <span className="font-bold">{calculateTotal().toLocaleString('ar-SA', { minimumFractionDigits: 2 })} ر.س</span></p>
-                                    <p>المتبقي: <span className="font-bold">{Math.max(calculateTotal() - (Number(data.payment_amount) || 0), 0).toLocaleString('ar-SA', { minimumFractionDigits: 2 })} ر.س</span></p>
-                                </div>
-
-                                <div className="flex space-x-4">
-                                    <PrimaryButton
-                                        type="button"
-                                        onClick={addProduct}
-                                        className="bg-blue-600 hover:bg-blue-700"
-                                    >
-                                        + إضافة منتج
-                                    </PrimaryButton>
-
-                                    <PrimaryButton
-                                        type="submit"
-                                        disabled={processing}
-                                        className="bg-green-600 hover:bg-green-700"
-                                    >
-                                        {processing ? 'جاري الحفظ...' : 'حفظ الفاتورة'}
-                                    </PrimaryButton>
-                                    <PrimaryButton
-                                        type="button"
-                                        onClick={() => window.location.href = route('sales.index')}
-                                        className="bg-gray-600 hover:bg-gray-700"
-                                    >
-                                        إلغاء
-                                    </PrimaryButton>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
+                        {/* زر الحفظ */}
+                        <div className="flex justify-end">
+                            <button
+                                type="submit"
+                                disabled={processing}
+                                className={`bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition ${
+                                    processing ? 'opacity-50 cursor-not-allowed' : ''
+                                }`}
+                            >
+                                {processing ? 'جاري الحفظ...' : 'حفظ الفاتورة'}
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </>

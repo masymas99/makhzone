@@ -9,14 +9,13 @@ class SaleDetail extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'SaleDetailID';
     protected $fillable = [
         'SaleID',
         'ProductID',
         'Quantity',
         'UnitPrice',
-        'UnitCost',
         'SubTotal',
+        'UnitCost',
         'Profit'
     ];
 
