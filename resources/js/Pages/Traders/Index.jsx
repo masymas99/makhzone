@@ -22,8 +22,8 @@ export default function Index() {
                         <th className="border p-2">اسم التاجر</th>
                         <th className="border p-2">الهاتف</th>
                         <th className="border p-2">الرصيد</th>
-                        <th className="border p-2">المبيعات الإجمالية</th>
-                        <th className="border p-2">المدفوعات الإجمالية</th>
+                        <th className="border p-2">إجمالي المبيعات</th>
+                        <th className="border p-2">المدفوع</th>
                         <th className="border p-2">الحالة</th>
                         <th className="border p-2">العمليات</th>
                     </tr>
@@ -35,23 +35,25 @@ export default function Index() {
                             <td className="border p-2">{trader.TraderID}</td>
                             <td className="border p-2">{trader.TraderName}</td>
                             <td className="border p-2">{trader.Phone}</td>
-                            <td className="border p-2" style={{ color: trader.Balance > 0 ? 'green' : 'red' }}>
+                            <td className="border p-2" style={{ color: trader.balance < 0 ? 'red' : 'green' }}>
                                 {trader.Balance}
                             </td>
-                            <td className="border p-2">{trader.TotalSales}</td>
-                            <td className="border p-2">{trader.TotalPayments}</td>
-                          
-                            <td className="border p-2">
-                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                    trader.IsActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                                }`}>
-                                    {trader.IsActive ? 'نشط' : 'غير نشط'}
-                                </span>
+                            <td className="border p-2" style={{ color: trader.totalSales < 0 ? 'red' : 'green' }}>
+                                {trader.TotalSales}
                             </td>
+                            <td className="border p-2" style={{ color: trader.totalPaid < 0 ? 'red' : 'green' }}>
+                                {trader.TotalPayments}
+                            </td>
+                         
+                            <td className="border p-2">{trader.IsActive ? 'نشط' : 'غير نشط'}</td>
                             <td className="border p-2">
-                                <div className="flex space-x-2">
-                                    <Link href={route('traders.show', trader.TraderID)} className="text-blue-500 hover:text-blue-700">عرض</Link>
-                                    <Link href={route('traders.edit', trader.TraderID)} className="text-yellow-500 hover:text-yellow-700">تعديل</Link>
+                                <div className="flex gap-2">
+                                    <Link href={route('traders.edit', trader.TraderID)} className="text-blue-500 hover:text-blue-700">
+                                        تعديل
+                                    </Link>
+                                    <Link href={route('traders.show', trader.TraderID)} className="text-green-500 hover:text-green-700">
+                                        تفاصيل
+                                    </Link>
                                 </div>
                             </td>
                         </tr>

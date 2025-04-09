@@ -23,6 +23,7 @@ export default function Index() {
                         <th className="border p-2">المدفوع</th>
                         <th className="border p-2">المتبقي</th>
                         <th className="border p-2">الحالة</th>
+                        <th className="border p-2">إجراءات</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -37,6 +38,24 @@ export default function Index() {
                                 {sale.RemainingAmount}
                             </td>
                             <td className="border p-2">{sale.Status}</td>
+                            <td className="border p-2">
+                                <div className="flex gap-2">
+                                    <Link href={route('sales.edit', sale.SaleID)} className="text-blue-500 hover:text-blue-700">
+                                        تعديل
+                                    </Link>
+                                    <Link href={route('sales.destroy', sale.SaleID)} 
+                                          method="delete" 
+                                          onClick={(e) => {
+                                              if (!confirm('هل أنت متأكد من حذف هذه الفاتورة؟')) {
+                                                  e.preventDefault();
+                                              }
+                                          }}
+                                          className="text-red-500 hover:text-red-700"
+                                    >
+                                        حذف
+                                    </Link>
+                                </div>
+                            </td>
                         </tr>
                     ))}
                 </tbody>

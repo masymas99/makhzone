@@ -110,4 +110,68 @@ class SalesController extends Controller
             return redirect()->back()->with('error', 'حدث خطأ أثناء إنشاء الفاتورة: ' . $e->getMessage());
         }
     }
+
+    public function edit($id)
+    {
+        $sale = Sale::with('trader', 'details.product')->findOrFail($id);
+        $traders = Trader::where('IsActive', 1)->get();
+        return Inertia::render('Sales/Edit', [
+            'sale' => $sale,
+            'traders' => $traders,
+        ]);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'trader_id' => 'required|exists:traders,TraderID',
+            'total_amount' => 'required|numeric|min:0',
+            'paid_amount' => 'required|numeric|min:0',
+            'status' => 'required|in:pending,paid,partial,cancelled',
+        ]);
+
+        $sale = Sale::findOrFail($id);
+        $sale->update([
+            'TraderID' => $request->trader_id,
+            'TotalAmount' => $request->total_amount,
+            'PaidAmount' => $request->paid_amount,
+            'Status' => $request->status,
+            'RemainingAmount' => $request->total_amount - $request->paid_amount,
+            'Note' => $request->note,
+        ]);
+
+        return redirect()->route('sales.index')->with('success', 'تم تحديث الفاتورة بنجاح');
+    }
+
+    public function destroy($id)
+    {
+        try {
+            DB::beginTransaction();
+
+            $sale = Sale::with(['details', 'payments'])->findOrFail($id);
+            
+            // Delete sale details first
+            $sale->details()->delete();
+            
+            // Delete related payments
+            $sale->payments()->delete();
+            
+            // Update trader balance
+            $trader = $sale->trader;
+            if ($trader) {
+                $trader->Balance -= $sale->TotalAmount;
+                $trader->save();
+            }
+            
+            // Then delete the sale itself
+            $sale->delete();
+            
+            DB::commit();
+            return redirect()->route('sales.index')->with('success', 'تم حذف الفاتورة بنجاح');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'حدث خطأ أثناء حذف الفاتورة: ' . $e->getMessage());
+        }
+    }
 }

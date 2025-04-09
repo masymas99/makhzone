@@ -8,15 +8,32 @@ use App\Models\Sale;
 use App\Models\Payment;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\DB;
 
 class TraderController extends Controller
 {
     public function index()
     {
-        $traders = Trader::orderBy('TotalSales', 'asc')
+        $traders = Trader::with(['sales', 'payments'])
             ->get()
             ->map(function ($trader) {
-                $trader->totalDebt = $trader->TotalSales - $trader->TotalPayments;
+                // Calculate totals from sales
+                $totalSales = $trader->sales->sum('TotalAmount');
+                $paidAmount = $trader->sales->sum('PaidAmount');
+                $remainingAmount = $trader->sales->sum('RemainingAmount');
+                
+                // Add payment amounts to paid amount
+                $totalPaid = $paidAmount + $trader->payments->sum('Amount');
+                
+                // Calculate balance
+                $balance = $totalSales - $totalPaid;
+                
+                // Add calculated values to trader object
+                $trader->totalSales = $totalSales;
+                $trader->totalPaid = $totalPaid;
+                $trader->remainingAmount = $remainingAmount;
+                $trader->balance = $balance;
+                
                 return $trader;
             });
 
