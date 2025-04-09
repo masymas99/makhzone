@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Controller;
 use App\Models\Trader;
+use App\Models\Sale;
+use App\Models\Payment;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -10,53 +13,12 @@ class TraderController extends Controller
 {
     public function index()
     {
-        $traders = Trader::with([
-            'sales.details.product', 
-            'payments',
-            'financials'
-        ])
-        ->get()
-        ->map(function ($trader) {
-            // Get the latest financial record
-            $latestFinancial = $trader->financials
-                ->sortByDesc('created_at')
-                ->first();
-
-            if ($latestFinancial) {
-                $trader->balance = $latestFinancial->balance;
-                $trader->total_sales = $latestFinancial->total_sales;
-                $trader->total_payments = $latestFinancial->total_payments;
-                $trader->remaining_amount = $latestFinancial->remaining_amount;
-            } else {
-                $trader->balance = 0;
-                $trader->total_sales = 0;
-                $trader->total_payments = 0;
-                $trader->remaining_amount = 0;
-            }
-
-            $trader->recentSales = $trader->sales
-                ->sortByDesc('SaleDate')
-                ->take(5)
-                ->map(function($sale) {
-                    return [
-                        'sale' => $sale,
-                        'invoice_number' => $sale->InvoiceNumber,
-                        'amount' => $sale->TotalAmount,
-                        'date' => $sale->SaleDate,
-                        'status' => $sale->Status,
-                        'products' => $sale->details->map(function($detail) {
-                            return [
-                                'name' => $detail->product->ProductName,
-                                'quantity' => $detail->Quantity,
-                                'unit_price' => $detail->UnitPrice,
-                                'total' => $detail->UnitPrice * $detail->Quantity
-                            ];
-                        })
-                    ];
-                });
-
-            return $trader;
-        });
+        $traders = Trader::orderBy('TotalSales', 'asc')
+            ->get()
+            ->map(function ($trader) {
+                $trader->totalDebt = $trader->TotalSales - $trader->TotalPayments;
+                return $trader;
+            });
 
         return Inertia::render('Traders/Index', [
             'traders' => $traders
@@ -90,35 +52,18 @@ class TraderController extends Controller
 
     public function show($id)
     {
-        $trader = Trader::with([
-            'sales' => function ($query) {
-                $query->orderBy('SaleDate', 'desc')
-                    ->with(['details' => function($query) {
-                        $query->select(['SaleID', 'Quantity', 'UnitPrice', 'ProductID']);
-                    }]);
-            },
-            'purchases' => function ($query) {
-                $query->orderBy('PurchaseDate', 'desc')
-                    ->with(['purchaseDetails' => function($query) {
-                        $query->select(['PurchaseID', 'Quantity', 'UnitPrice', 'ProductID']);
-                    }]);
-            },
-            'payments' => function ($query) {
-                $query->orderBy('PaymentDate', 'desc');
-            }
-        ])->findOrFail($id);
+        $trader = Trader::findOrFail($id);
+        $trader->totalDebt = $trader->TotalSales - $trader->TotalPayments;
 
-        $totals = $trader->calculateTotals();
         return Inertia::render('Traders/Show', [
-            'trader' => $trader,
-            'totals' => $totals
+            'trader' => $trader
         ]);
     }
 
     public function edit($id)
     {
-        $trader = Trader::with(['sales', 'purchases', 'payments'])
-            ->findOrFail($id);
+        $trader = Trader::findOrFail($id);
+        $trader->totalDebt = $trader->TotalSales - $trader->TotalPayments;
 
         return Inertia::render('Traders/Edit', [
             'trader' => $trader
@@ -150,5 +95,10 @@ class TraderController extends Controller
         $trader = Trader::findOrFail($id);
         $trader->update(['IsActive' => 0]);
         return redirect()->route('traders.index')->with('success', 'تم تعطيل التاجر بنجاح');
+    }
+
+    private function calculateDebt($trader)
+    {
+        return $trader->TotalSales - $trader->TotalPayments;
     }
 }

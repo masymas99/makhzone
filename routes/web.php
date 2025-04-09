@@ -3,6 +3,7 @@
 use App\Http\Controllers\SalesController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\TraderFinancialController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
@@ -20,6 +21,9 @@ Route::middleware(['auth'])->group(function () {
     // باقي الراوتس لو عاوز تحتفظ بيهم
     Route::resource('traders', App\Http\Controllers\TraderController::class);
    
+    Route::get('/traders/financials', [TraderFinancialController::class, 'index'])->name('traders.financials');
+    Route::get('/traders/{id}/financials', [TraderFinancialController::class, 'show'])->name('traders.financials.show');
+
     Route::resource('purchases', App\Http\Controllers\PurchaseController::class);
     Route::resource('expenses', App\Http\Controllers\ExpenseController::class);
     Route::resource('payments', App\Http\Controllers\PaymentController::class);

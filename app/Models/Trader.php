@@ -21,6 +21,7 @@ class Trader extends Model
         'Phone',
         'Address',
         'Balance',
+        'TotalSales',
         'TotalPayments',
         'IsActive'
     ];
@@ -28,6 +29,7 @@ class Trader extends Model
     protected $casts = [
         'IsActive' => 'boolean',
         'Balance' => 'float',
+        'TotalSales' => 'float',
         'TotalPayments' => 'float'
     ];
 
@@ -37,11 +39,13 @@ class Trader extends Model
         'Phone',
         'Address',
         'Balance',
+        'TotalSales',
         'TotalPayments',
         'IsActive',
         'sales',
         'purchases',
-        'payments'
+        'payments',
+        // debt
     ];
 
     public function sales(): HasMany

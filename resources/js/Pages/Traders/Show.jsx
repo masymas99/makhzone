@@ -1,8 +1,10 @@
-import { Head } from '@inertiajs/react'
-import { Link } from '@inertiajs/react'
-import Layout from '@/Layouts/Layout'
+import React from 'react';
+import { Link, Head, usePage } from '@inertiajs/react';
+import Layout from '@/Layouts/Layout';
 
-export default function Show({ trader, balance, totals }) {
+export default function Show() {
+    const { trader, balance, totals } = usePage().props;
+
     return (
         <Layout>
             <Head title={`تفاصيل التاجر - ${trader.TraderName}`} />
@@ -53,23 +55,36 @@ export default function Show({ trader, balance, totals }) {
                     <div className="bg-white rounded-lg shadow p-6">
                         <h2 className="text-xl font-bold mb-4">المعلومات المالية</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="bg-blue-100 p-4 rounded-lg">
-                                <h3 className="text-blue-600 font-bold mb-2">المبيعات</h3>
-                                <p className="text-2xl">{totals.totalSales.toLocaleString()} ر.س</p>
+                            <div>
+                                <h3 className="text-lg font-semibold mb-2">الحساب</h3>
+                                <p><strong>الرصيد الحالي:</strong> {balance.toLocaleString()} ر.س</p>
+                                <p><strong>المبيعات الإجمالية:</strong> {totals.totalSales.toLocaleString()} ر.س</p>
                             </div>
-                            <div className="bg-green-100 p-4 rounded-lg">
-                                <h3 className="text-green-600 font-bold mb-2">المشتريات</h3>
-                                <p className="text-2xl">{totals.totalPurchases.toLocaleString()} ر.س</p>
-                            </div>
-                            <div className="bg-red-100 p-4 rounded-lg">
-                                <h3 className="text-red-600 font-bold mb-2">المدفوعات</h3>
-                                <p className="text-2xl">{totals.totalPayments.toLocaleString()} ر.ص</p>
-                            </div>
-                            <div className={`bg-${totals.balance > 0 ? 'red' : totals.balance < 0 ? 'blue' : 'green'}-100 p-4 rounded-lg`}>
-                                <h3 className={`${totals.balance > 0 ? 'text-red' : totals.balance < 0 ? 'text-blue' : 'text-green'}-600 font-bold mb-2`}>
-                                    {totals.balance > 0 ? 'مستحق عليه' : totals.balance < 0 ? 'مستحق له' : 'متوازن'}
-                                </h3>
-                                <p className="text-2xl">{totals.balance.toLocaleString()} ر.س</p>
+
+                            <div>
+                                <h3 className="text-lg font-semibold mb-2">الحركة المالية</h3>
+                                <table className="w-full border">
+                                    <thead>
+                                        <tr>
+                                            <th className="border p-2">التاريخ</th>
+                                            <th className="border p-2">نوع المعاملة</th>
+                                            <th className="border p-2">المبلغ</th>
+                                            <th className="border p-2">الوصف</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {trader.financials.map((financial) => (
+                                            <tr key={financial.id}>
+                                                <td className="border p-2">{new Date(financial.created_at).toLocaleDateString('ar-EG')}</td>
+                                                <td className="border p-2">{financial.transaction_type}</td>
+                                                <td className="border p-2" style={{ color: financial.transaction_type === 'credit' ? 'green' : 'red' }}>
+                                                    {financial.transaction_type === 'credit' ? '+' : '-'} {financial.payment_amount || financial.sale_amount}
+                                                </td>
+                                                <td className="border p-2">{financial.description}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
