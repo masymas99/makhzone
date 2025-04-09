@@ -93,7 +93,58 @@ export default function Products() {
                         {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
                     </div>
 
-                    {/* Other form fields with similar structure */}
+                    <div>
+                        <label className="block text-sm font-medium mb-1">Category</label>
+                        <select
+                            name="category"
+                            value={formData.category || 'General'}
+                            onChange={handleChange}
+                            className={`w-full p-2 border rounded ${errors.category ? 'border-red-500' : ''}`}
+                        >
+                            <option value="General">General</option>
+                            <option value="Electronics">Electronics</option>
+                            <option value="Clothing">Clothing</option>
+                            <option value="Food">Food</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        {errors.category && <p className="text-red-500 text-sm">{errors.category}</p>}
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium mb-1">Stock Quantity</label>
+                        <input
+                            type="number"
+                            name="stock_quantity"
+                            value={formData.stock_quantity}
+                            onChange={handleChange}
+                            className={`w-full p-2 border rounded ${errors.stock_quantity ? 'border-red-500' : ''}`}
+                        />
+                        {errors.stock_quantity && <p className="text-red-500 text-sm">{errors.stock_quantity}</p>}
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium mb-1">Unit Price</label>
+                        <input
+                            type="number"
+                            name="unit_price"
+                            value={formData.unit_price}
+                            onChange={handleChange}
+                            className={`w-full p-2 border rounded ${errors.unit_price ? 'border-red-500' : ''}`}
+                        />
+                        {errors.unit_price && <p className="text-red-500 text-sm">{errors.unit_price}</p>}
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium mb-1">Unit Cost</label>
+                        <input
+                            type="number"
+                            name="unit_cost"
+                            value={formData.unit_cost}
+                            onChange={handleChange}
+                            className={`w-full p-2 border rounded ${errors.unit_cost ? 'border-red-500' : ''}`}
+                        />
+                        {errors.unit_cost && <p className="text-red-500 text-sm">{errors.unit_cost}</p>}
+                    </div>
 
                     <button
                         type="submit"

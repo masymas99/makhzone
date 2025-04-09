@@ -15,7 +15,6 @@ export default function ProductsIndex() {
 
   const { data: formData, setData, post, put, delete: destroy, processing, errors } = useForm({
     ProductName: '',
-    Category: 'أغذية',
     StockQuantity: 0,
     UnitPrice: 0,
     UnitCost: 0,
@@ -29,14 +28,13 @@ export default function ProductsIndex() {
   useEffect(() => {
     if (selectedProduct) {
       setData('ProductName', selectedProduct.ProductName);
-      setData('Category', selectedProduct.Category);
       setData('StockQuantity', selectedProduct.StockQuantity);
       setData('UnitPrice', selectedProduct.UnitPrice);
       setData('UnitCost', selectedProduct.UnitCost);
       setData('IsActive', selectedProduct.IsActive);
       setData('description', selectedProduct.description || '');
       setData('product_id', selectedProduct.ProductID);
-      setData('SupplierName', ''); // Reset supplier name for new quantity
+      setData('SupplierName', '');
     }
   }, [selectedProduct, setData]);
 
@@ -45,7 +43,6 @@ export default function ProductsIndex() {
     
     const data = {
       ProductName: formData.ProductName,
-      Category: formData.Category,
       StockQuantity: formData.StockQuantity,
       UnitCost: formData.UnitCost,
       UnitPrice: formData.UnitPrice,
@@ -84,14 +81,13 @@ export default function ProductsIndex() {
     setShowCreateModal(true);
     setData({
       ProductName: product.ProductName,
-      Category: product.Category,
       StockQuantity: 0,
       UnitCost: 0,
       UnitPrice: product.UnitPrice,
       IsActive: product.IsActive,
       description: product.description || '',
       product_id: product.ProductID,
-      SupplierName: '' // Reset supplier name for new quantity
+      SupplierName: ''
     });
   };
 
@@ -124,7 +120,6 @@ export default function ProductsIndex() {
                     setSelectedProduct(null);
                     setData({
                       ProductName: '',
-                      Category: 'أغذية',
                       StockQuantity: 0,
                       UnitPrice: 0,
                       UnitCost: 0,
@@ -171,7 +166,6 @@ export default function ProductsIndex() {
               <thead>
                 <tr className="border-b">
                   <th className="pb-2">الاسم</th>
-                  <th className="pb-2">الفئة</th>
                   <th className="pb-2">الكمية</th>
                   <th className="pb-2">سعر الوحدة</th>
                   <th className="pb-2">تكلفة الوحدة</th>
@@ -183,7 +177,6 @@ export default function ProductsIndex() {
                 {products && products.map((product) => (
                   <tr key={product.ProductID} className="border-b">
                     <td className="py-3">{product.ProductName}</td>
-                    <td className="py-3">{product.Category}</td>
                     <td className="py-3">{product.StockQuantity}</td>
                     <td className="py-3">{product.UnitPrice}</td>
                     <td className="py-3">{product.UnitCost}</td>
@@ -245,23 +238,6 @@ export default function ProductsIndex() {
                       />
                       {errors?.ProductName && (
                         <p className="text-red-500 text-sm mt-1">{errors.ProductName}</p>
-                      )}
-                    </div>
-
-                    <div className="mb-4">
-                      <label className="block mb-2">الفئة</label>
-                      <select
-                        value={formData.Category}
-                        onChange={(e) => setData('Category', e.target.value)}
-                        disabled={formData.product_id}
-                        className="w-full p-2 border rounded"
-                      >
-                        <option value="أغذية">أغذية</option>
-                        <option value="مشروبات">مشروبات</option>
-                        <option value="مواد تنظيف">مواد تنظيف</option>
-                      </select>
-                      {errors?.Category && (
-                        <p className="text-red-500 text-sm mt-1">{errors.Category}</p>
                       )}
                     </div>
 

@@ -43,7 +43,6 @@ class ProductsController extends Controller
     {
         $validated = $request->validate([
             'ProductName' => 'required|string|max:255',
-            'Category' => 'required|string|max:255',
             'StockQuantity' => 'required|integer|min:1',
             'UnitCost' => 'required|numeric|min:0',
             'UnitPrice' => 'nullable|numeric|min:0',
@@ -107,7 +106,6 @@ class ProductsController extends Controller
             } else {
                 $product = Product::create([
                     'ProductName' => $validated['ProductName'],
-                    'Category' => $validated['Category'],
                     'StockQuantity' => $validated['StockQuantity'],
                     'UnitCost' => $validated['UnitCost'],
                     'UnitPrice' => $validated['UnitPrice'] ?? 0,
@@ -169,7 +167,6 @@ class ProductsController extends Controller
     {
         $validated = $request->validate([
             'ProductName' => 'required|string|max:255',
-            'Category' => 'required|string|max:255',
             'StockQuantity' => 'required|integer|min:0',
             'UnitPrice' => 'nullable|numeric|min:0',
             'UnitCost' => 'nullable|numeric|min:0',

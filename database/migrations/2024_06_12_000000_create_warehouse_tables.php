@@ -22,7 +22,7 @@ return new class extends Migration
         Schema::create('products', function (Blueprint $table) {
             $table->id('ProductID');
             $table->string('ProductName', 255);
-            $table->string('Category', 100)->nullable();
+            $table->string('Category', 100)->default('General');
             $table->integer('StockQuantity');
             $table->decimal('UnitPrice', 10, 2);
             $table->decimal('UnitCost', 10, 2);
