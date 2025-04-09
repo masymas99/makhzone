@@ -9,85 +9,112 @@ use App\Models\Trader;
 
 class TraderFinancialObserver
 {
-    public function created(Sale $sale)
+    public function created($transaction)
     {
-        // Get the latest financial record for this trader
-        $latestFinancial = TraderFinancial::where('trader_id', $sale->TraderID)
-            ->orderBy('created_at', 'desc')
-            ->first();
+        if ($transaction instanceof Sale) {
+            // For sales
+            $latestFinancial = TraderFinancial::where('trader_id', $transaction->TraderID)
+                ->orderBy('created_at', 'desc')
+                ->first();
 
-        // Get total sales and total payments for this trader
-        $totalSales = $sale->trader->sales->sum('TotalAmount');
-        $totalPayments = $sale->trader->sales->sum('PaidAmount');
+            $totalSales = $transaction->trader->sales->sum('TotalAmount');
+            $totalPayments = $transaction->trader->sales->sum('PaidAmount') + 
+                           $transaction->trader->payments->sum('Amount');
 
-        // Calculate remaining amount
-        $remainingAmount = $totalSales - $totalPayments;
+            // Calculate balance as total sales - total payments
+            $remainingAmount = $totalSales - $totalPayments;
 
-        // Create financial record
-        TraderFinancial::create([
-            'trader_id' => $sale->TraderID,
-            'sale_id' => $sale->id,
-            'sale_amount' => $sale->TotalAmount,
-            'payment_amount' => $sale->PaidAmount,
-            'balance' => $remainingAmount,
-            'total_sales' => $totalSales,
-            'total_payments' => $totalPayments,
-            'remaining_amount' => $remainingAmount,
-            'transaction_type' => 'sale',
-            'description' => "تم إضافة فاتورة بيع رقم #{$sale->InvoiceNumber}",
-            'created_at' => now(),
-            'updated_at' => now()
-        ]);
+            TraderFinancial::create([
+                'trader_id' => $transaction->TraderID,
+                'sale_id' => $transaction->id,
+                'sale_amount' => $transaction->TotalAmount,
+                'payment_amount' => $transaction->PaidAmount,
+                'balance' => $remainingAmount,
+                'total_sales' => $totalSales,
+                'total_payments' => $totalPayments,
+                'remaining_amount' => $remainingAmount,
+                'transaction_type' => 'sale',
+                'description' => "تم إضافة فاتورة بيع رقم #{$transaction->InvoiceNumber}",
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+        } elseif ($transaction instanceof Payment) {
+            // For payments
+            $latestFinancial = TraderFinancial::where('trader_id', $transaction->TraderID)
+                ->orderBy('created_at', 'desc')
+                ->first();
+
+            $totalSales = $transaction->trader->sales->sum('TotalAmount');
+            $totalPayments = $transaction->trader->sales->sum('PaidAmount') + 
+                           $transaction->trader->payments->sum('Amount');
+
+            // Calculate balance as total sales - total payments
+            $remainingAmount = $totalSales - $totalPayments;
+
+            TraderFinancial::create([
+                'trader_id' => $transaction->TraderID,
+                'sale_id' => null,
+                'payment_id' => $transaction->PaymentID,
+                'sale_amount' => 0,
+                'payment_amount' => $transaction->Amount,
+                'balance' => $remainingAmount,
+                'total_sales' => $totalSales,
+                'total_payments' => $totalPayments,
+                'remaining_amount' => $remainingAmount,
+                'transaction_type' => 'payment',
+                'description' => "تم إضافة دفعة يدوية بقيمة #{$transaction->Amount}",
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+        }
 
         // Update trader's balance
-        $trader = $sale->trader;
+        $trader = $transaction->trader;
         $trader->Balance = $remainingAmount;
         $trader->TotalSales = $totalSales;
         $trader->TotalPayments = $totalPayments;
         $trader->save();
     }
 
-    public function updated(Sale $sale)
+    public function updated($transaction)
     {
-        // Get all sale details for this sale
-        $saleDetails = $sale->details;
-        
-        // Calculate total profit for this sale
-        $totalProfit = $saleDetails->sum(function($detail) {
-            return ($detail->UnitPrice - $detail->UnitCost) * $detail->Quantity;
-        });
+        if ($transaction instanceof Sale) {
+            // For sales
+            $saleDetails = $transaction->details;
+            $totalProfit = $saleDetails->sum(function($detail) {
+                return ($detail->UnitPrice - $detail->UnitCost) * $detail->Quantity;
+            });
 
-        // Get the latest financial record for this trader
-        $latestFinancial = TraderFinancial::where('trader_id', $sale->TraderID)
-            ->orderBy('created_at', 'desc')
-            ->first();
+            $latestFinancial = TraderFinancial::where('trader_id', $transaction->TraderID)
+                ->orderBy('created_at', 'desc')
+                ->first();
 
-        // Get total sales and total payments for this trader
-        $totalSales = $sale->trader->sales->sum('TotalAmount');
-        $totalPayments = $sale->trader->sales->sum('PaidAmount');
+            $totalSales = $transaction->trader->sales->sum('TotalAmount');
+            $totalPayments = $transaction->trader->sales->sum('PaidAmount') + 
+                           $transaction->trader->payments->sum('Amount');
 
-        // Calculate remaining amount
-        $remainingAmount = $totalSales - $totalPayments;
+            // Calculate balance as total sales - total payments
+            $remainingAmount = $totalSales - $totalPayments;
 
-        // Create financial record
-        TraderFinancial::create([
-            'trader_id' => $sale->TraderID,
-            'sale_id' => $sale->id,
-            'sale_amount' => $sale->TotalAmount,
-            'payment_amount' => $sale->PaidAmount,
-            'balance' => $remainingAmount,
-            'total_sales' => $totalSales,
-            'total_payments' => $totalPayments,
-            'remaining_amount' => $remainingAmount,
-            'profit' => $totalProfit,
-            'transaction_type' => 'sale',
-            'description' => "تم تحديث فاتورة بيع رقم #{$sale->InvoiceNumber}",
-            'created_at' => now(),
-            'updated_at' => now()
-        ]);
+            TraderFinancial::create([
+                'trader_id' => $transaction->TraderID,
+                'sale_id' => $transaction->id,
+                'sale_amount' => $transaction->TotalAmount,
+                'payment_amount' => $transaction->PaidAmount,
+                'balance' => $remainingAmount,
+                'total_sales' => $totalSales,
+                'total_payments' => $totalPayments,
+                'remaining_amount' => $remainingAmount,
+                'profit' => $totalProfit,
+                'transaction_type' => 'sale',
+                'description' => "تم تحديث فاتورة بيع رقم #{$transaction->InvoiceNumber}",
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+        }
 
         // Update trader's balance
-        $trader = $sale->trader;
+        $trader = $transaction->trader;
         $trader->Balance = $remainingAmount;
         $trader->TotalSales = $totalSales;
         $trader->TotalPayments = $totalPayments;

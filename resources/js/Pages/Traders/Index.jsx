@@ -53,6 +53,9 @@ export default function Index() {
                                     <Link href={route('traders.show', trader.TraderID)} className="text-green-500 hover:text-green-700">
                                         تفاصيل
                                     </Link>
+                                    <Link href={route('traders.payments.create', trader.TraderID)} className="text-purple-500 hover:text-purple-700">
+                                        دفعة يدوية
+                                    </Link>
                                 </div>
                             </td>
                         </tr>

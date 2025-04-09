@@ -50,10 +50,7 @@ class Trader extends Model
 
     public function sales(): HasMany
     {
-        return $this->hasMany(Sale::class, 'TraderID')
-            ->with(['details' => function($query) {
-                $query->select(['SaleID', 'Quantity', 'UnitPrice', 'ProductID']);
-            }]);
+        return $this->hasMany(Sale::class, 'TraderID');
     }
 
     public function purchases(): HasMany

@@ -17,23 +17,27 @@ class TraderController extends Controller
         $traders = Trader::with(['sales', 'payments'])
             ->get()
             ->map(function ($trader) {
-                // Calculate totals from sales
+                // Calculate totals directly from the database
                 $totalSales = $trader->sales->sum('TotalAmount');
                 $paidAmount = $trader->sales->sum('PaidAmount');
-                $remainingAmount = $trader->sales->sum('RemainingAmount');
-                
-                // Add payment amounts to paid amount
-                $totalPaid = $paidAmount + $trader->payments->sum('Amount');
+                $totalPayments = $paidAmount + $trader->payments->sum('Amount');
                 
                 // Calculate balance
-                $balance = $totalSales - $totalPaid;
+                $balance = $totalSales - $totalPayments;
                 
-                // Add calculated values to trader object
+                // Update the trader's record with calculated values
+                $trader->update([
+                    'TotalSales' => $totalSales,
+                    'TotalPayments' => $totalPayments,
+                    'Balance' => $balance
+                ]);
+
+                // Add calculated values to trader object for display
                 $trader->totalSales = $totalSales;
-                $trader->totalPaid = $totalPaid;
-                $trader->remainingAmount = $remainingAmount;
+                $trader->totalPaid = $totalPayments;
                 $trader->balance = $balance;
-                
+                $trader->remainingAmount = $totalSales - $totalPayments;
+
                 return $trader;
             });
 
