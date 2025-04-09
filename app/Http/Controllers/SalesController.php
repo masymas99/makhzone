@@ -128,19 +128,83 @@ class SalesController extends Controller
             'total_amount' => 'required|numeric|min:0',
             'paid_amount' => 'required|numeric|min:0',
             'status' => 'required|in:pending,paid,partial,cancelled',
+            'products' => 'required|array',
+            'products.*.ProductID' => 'required|exists:products,ProductID',
+            'products.*.Quantity' => 'required|numeric|min:1',
         ]);
 
-        $sale = Sale::findOrFail($id);
-        $sale->update([
-            'TraderID' => $request->trader_id,
-            'TotalAmount' => $request->total_amount,
-            'PaidAmount' => $request->paid_amount,
-            'Status' => $request->status,
-            'RemainingAmount' => $request->total_amount - $request->paid_amount,
-            'Note' => $request->note,
-        ]);
+        try {
+            DB::beginTransaction();
 
-        return redirect()->route('sales.index')->with('success', 'تم تحديث الفاتورة بنجاح');
+            $sale = Sale::with('details.product')->findOrFail($id);
+            
+            // First, restore the previous quantities
+            foreach ($sale->details as $detail) {
+                $product = Product::find($detail->ProductID);
+                if ($product) {
+                    $product->StockQuantity += $detail->Quantity;
+                    $product->save();
+                }
+            }
+
+            // Delete old details
+            $sale->details()->delete();
+
+            // Create new details with updated quantities
+            $totalAmount = 0;
+            foreach ($request->products as $product) {
+                $productModel = Product::find($product['ProductID']);
+                
+                // Check if we have enough stock
+                if ($productModel->StockQuantity < $product['Quantity']) {
+                    DB::rollBack();
+                    return redirect()->back()->with('error', 'الكمية المطلوبة غير متوفرة في المخزون');
+                }
+                
+                $subTotal = $product['Quantity'] * $productModel->UnitPrice;
+                $profit = $subTotal - ($product['Quantity'] * $productModel->UnitCost);
+                $totalAmount += $subTotal;
+
+                // Create new sale detail
+                SaleDetail::create([
+                    'SaleID' => $sale->SaleID,
+                    'ProductID' => $product['ProductID'],
+                    'Quantity' => $product['Quantity'],
+                    'UnitPrice' => $productModel->UnitPrice,
+                    'UnitCost' => $productModel->UnitCost,
+                    'SubTotal' => $subTotal,
+                    'Profit' => $profit,
+                ]);
+
+                // Update product quantity
+                $productModel->StockQuantity -= $product['Quantity'];
+                $productModel->save();
+            }
+
+            // Update sale information
+            $sale->update([
+                'TraderID' => $request->trader_id,
+                'TotalAmount' => $totalAmount,
+                'PaidAmount' => $request->paid_amount,
+                'Status' => $request->status,
+                'RemainingAmount' => $totalAmount - $request->paid_amount,
+                'Note' => $request->note,
+            ]);
+
+            // Update trader balance
+            $trader = Trader::find($request->trader_id);
+            if ($trader) {
+                $trader->Balance = $trader->Balance - $sale->TotalAmount + $totalAmount;
+                $trader->save();
+            }
+
+            DB::commit();
+            return redirect()->route('sales.index')->with('success', 'تم تحديث الفاتورة بنجاح');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'حدث خطأ أثناء تحديث الفاتورة: ' . $e->getMessage());
+        }
     }
 
     public function destroy($id)
