@@ -4,52 +4,34 @@ namespace App\Http\Controllers;
 
 use App\Models\Expense;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
+use Illuminate\Support\Facades\DB;
 
 class ExpenseController extends Controller
 {
-    protected $expense;
-
-    public function __construct(Expense $expense)
-    {
-        $this->expense = $expense;
-    }
-
     public function index()
     {
-        $expenses = $this->expense->latest()->get();
-        return Inertia::render('Expenses/Index', ['expenses' => $expenses]);
+        $expenses = Expense::orderBy('ExpenseDate', 'desc')->get();
+        return inertia('Expenses/Index', [
+            'expenses' => $expenses
+        ]);
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'amount' => 'required|numeric|min:0',
-            'expense_date' => 'required|date',
-            'description' => 'nullable|string|max:255'
+            'ExpenseDate' => 'required|date',
+            'Description' => 'required|string|max:255',
+            'Amount' => 'required|numeric|min:0',
         ]);
 
-        $this->expense->create($validated);
-        return redirect()->route('expenses.index');
+        Expense::create($validated);
+
+        return redirect()->back()->with('success', 'تم إضافة المصروف بنجاح');
     }
 
-    public function update(Request $request, $id)
+    public function destroy(Expense $expense)
     {
-        $validated = $request->validate([
-            'amount' => 'required|numeric|min:0',
-            'expense_date' => 'required|date',
-            'description' => 'nullable|string|max:255'
-        ]);
-
-        $expense = $this->expense->findOrFail($id);
-        $expense->update($validated);
-        return redirect()->route('expenses.index');
-    }
-
-    public function destroy($id)
-    {
-        $expense = $this->expense->findOrFail($id);
         $expense->delete();
-        return redirect()->route('expenses.index');
+        return redirect()->back()->with('success', 'تم حذف المصروف بنجاح');
     }
 }

@@ -2,51 +2,78 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Sale;
 use App\Models\Expense;
+use App\Models\Purchase;
+use App\Models\PurchaseDetail;
+use App\Models\Sale;
 use App\Models\SaleDetail;
+use App\Models\Payment;
 use App\Models\Trader;
+use Illuminate\Http\Request;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
-use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        // إجمالي المبيعات مع علاقة التاجر
-        $totalSales = Sale::with('trader')->sum('TotalAmount');
-
-        // حساب تكلفة البضاعة المباعة عبر العلاقة
-        $cogs = SaleDetail::with('product')->get()
-            ->sum(fn($detail) => $detail->quantity * $detail->product->UnitCost);
-
-        // إجمالي المصروفات
+        // Calculate total expenses
         $totalExpenses = Expense::sum('Amount');
-
-        // إجمالي الديون
-        $tradersDebt = Trader::sum('TotalPayments');
-
-        // آخر المبيعات مع تفاصيلها
-        $recentSales = Sale::with(['trader', 'details.product'])
-            ->orderBy('SaleDate', 'desc')
+        
+        // Calculate total purchases (sum of all purchase details subtotals)
+        $totalPurchases = PurchaseDetail::sum('SubTotal');
+        
+        // Calculate total sales by summing UnitPrice * Quantity
+        $totalSales = DB::table('sale_details')
+            ->select(DB::raw('SUM(UnitPrice * Quantity) as total'))
+            ->value('total') ?? 0;
+        
+        // Calculate total profit (Sales - Purchases - Expenses)
+        $totalProfit = $totalSales - ($totalPurchases + $totalExpenses);
+        
+        // Get total debts by summing unpaid amounts from traders
+        $totalDebts = Trader::where('Balance', '>', 0)
+            ->sum('Balance');
+        
+        // Get recent activities
+        $recentExpenses = Expense::orderBy('ExpenseDate', 'desc')->take(5)->get();
+        
+        $recentPurchases = Purchase::with('purchaseDetails')
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get()
+            ->map(function($purchase) {
+                return [
+                    'id' => $purchase->PurchaseID,
+                    'product_name' => $purchase->purchaseDetails->first()->product->ProductName ?? 'غير معروف',
+                    'purchase_date' => $purchase->created_at,
+                    'total_cost' => $purchase->purchaseDetails->sum('SubTotal')
+                ];
+            });
+        
+        $recentSales = Sale::with('details')
+            ->orderBy('created_at', 'desc')
             ->take(5)
             ->get()
             ->map(function($sale) {
                 return [
-                    'date' => $sale->SaleDate,
-                    'total' => $sale->TotalAmount,
-                    'trader' => $sale->trader->Name,
-                    'products' => $sale->details->map(fn($d) => $d->product->ProductName)
+                    'id' => $sale->SaleID,
+                    'total_amount' => $sale->details->sum(function($detail) {
+                        return $detail->UnitPrice * $detail->Quantity;
+                    }),
+                    'created_at' => $sale->created_at
                 ];
             });
 
-        return Inertia::render('Dashboard', [
-            'total_sales' => $totalSales,
-            'cogs' => $cogs,
-            'total_expenses' => $totalExpenses,
-            'total_debts' => $tradersDebt,
-            'profit' => $totalSales - $cogs - $totalExpenses,
-            'recent_sales' => $recentSales
+        return inertia('Dashboard', [
+            'totalExpenses' => $totalExpenses,
+            'totalPurchases' => $totalPurchases,
+            'totalSales' => $totalSales,
+            'totalProfit' => $totalProfit,
+            'totalDebts' => $totalDebts,
+            'recentExpenses' => $recentExpenses,
+            'recentPurchases' => $recentPurchases,
+            'recentSales' => $recentSales
         ]);
     }
 }
