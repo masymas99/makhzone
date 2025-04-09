@@ -113,9 +113,54 @@ class TraderController extends Controller
 
     public function destroy($id)
     {
-        $trader = Trader::findOrFail($id);
-        $trader->update(['IsActive' => 0]);
-        return redirect()->route('traders.index')->with('success', 'تم تعطيل التاجر بنجاح');
+        try {
+            DB::beginTransaction();
+            
+            $trader = Trader::with(['sales', 'payments'])->findOrFail($id);
+            
+            // Delete all payments first
+            $trader->payments()->delete();
+            
+            // Delete all sales and their details
+            foreach ($trader->sales as $sale) {
+                $sale->details()->delete();
+                $sale->payments()->delete();
+                $sale->delete();
+            }
+            
+            // Delete the trader
+            $trader->delete();
+            
+            DB::commit();
+            return redirect()->route('traders.index')->with('success', 'تم حذف التاجر بنجاح');
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'حدث خطأ أثناء حذف التاجر: ' . $e->getMessage());
+        }
+    }
+
+    public function transactions($id)
+    {
+        $trader = Trader::with(['sales', 'payments'])->findOrFail($id);
+        
+        // Add type to sales
+        $sales = $trader->sales->map(function ($sale) {
+            $sale->type = 'sale';
+            return $sale;
+        });
+
+        // Add type to payments
+        $payments = $trader->payments->map(function ($payment) {
+            $payment->type = 'payment';
+            return $payment;
+        });
+
+        return Inertia::render('Traders/Transactions', [
+            'trader' => $trader,
+            'sales' => $sales,
+            'payments' => $payments
+        ]);
     }
 
     private function calculateDebt($trader)

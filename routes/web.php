@@ -28,6 +28,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/traders/{trader}/payments/create', [App\Http\Controllers\PaymentController::class, 'create'])->name('traders.payments.create');
     Route::post('/traders/{trader}/payments/manual', [App\Http\Controllers\PaymentController::class, 'storeManual'])->name('traders.payments.storeManual');
 
+    Route::get('/traders/{trader}/transactions', [App\Http\Controllers\TraderController::class, 'transactions'])->name('traders.transactions');
+
     Route::resource('purchases', App\Http\Controllers\PurchaseController::class);
     Route::resource('expenses', App\Http\Controllers\ExpenseController::class);
     Route::resource('payments', App\Http\Controllers\PaymentController::class);
