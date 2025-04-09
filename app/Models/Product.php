@@ -4,39 +4,47 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Product extends Model
 {
     use HasFactory;
 
     protected $primaryKey = 'ProductID';
+    protected $table = 'products';
+
     protected $fillable = [
         'ProductName',
-        'Category',
-        'StockQuantity',
+        'Description',
         'UnitPrice',
         'UnitCost',
+        'StockQuantity',
         'IsActive'
     ];
 
     protected $casts = [
-        'StockQuantity' => 'integer',
         'UnitPrice' => 'decimal:2',
         'UnitCost' => 'decimal:2',
+        'StockQuantity' => 'integer',
         'IsActive' => 'boolean'
     ];
 
-    public function saleDetails()
+    public function saleDetails(): HasMany
     {
         return $this->hasMany(SaleDetail::class, 'ProductID');
     }
 
-    public function purchaseDetails()
+    public function purchaseDetails(): HasMany
     {
         return $this->hasMany(PurchaseDetail::class, 'ProductID');
     }
 
-    public function calculateCurrentCost()
+    public function inventoryBatches(): HasMany
+    {
+        return $this->hasMany(InventoryBatch::class, 'ProductID');
+    }
+
+    public function calculateCurrentCost(): float
     {
         if ($this->StockQuantity <= 0) {
             return 0;
@@ -44,7 +52,7 @@ class Product extends Model
         return $this->UnitCost;
     }
 
-    public function updateCost($newQuantity, $newUnitCost)
+    public function updateCost(int $newQuantity, float $newUnitCost): void
     {
         if ($this->StockQuantity > 0) {
             // Calculate weighted average cost
@@ -61,13 +69,10 @@ class Product extends Model
         $this->save();
     }
 
-    public function inventoryBatches()
-    {
-        return $this->hasMany(InventoryBatch::class, 'ProductID', 'ProductID');
-    }
+  
 
     public function purchases()
     {
         return $this->hasMany(Purchase::class, 'ProductID', 'ProductID');
     }
-}      
+}
