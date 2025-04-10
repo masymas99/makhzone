@@ -121,6 +121,12 @@ export default function Index() {
                                     الرصيد
                                 </th>
                                 <th className="px-6 py-4 text-right text-sm font-semibold text-indigo-700 uppercase tracking-wider">
+                                    اجمالي مشترياته
+                                </th>
+                                <th className="px-6 py-4 text-right text-sm font-semibold text-indigo-700 uppercase tracking-wider">
+                                    اجمالي مدفوعاته
+                                </th>
+                                <th className="px-6 py-4 text-right text-sm font-semibold text-indigo-700 uppercase tracking-wider">
                                     الإجراءات
                                 </th>
                             </tr>
@@ -138,7 +144,14 @@ export default function Index() {
                                         {trader.Address}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        {trader.Balance} ر.س
+                                        {trader.Balance} ج.م
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        {trader.TotalSales} ج.م
+                                    </td>
+                                 
+                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        {trader.TotalPayments} ج.م
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <div className="flex items-center justify-end space-x-3 space-x-reverse">

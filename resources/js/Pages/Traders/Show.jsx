@@ -13,7 +13,7 @@ export default function Show() {
                 <div className="flex justify-between items-center mb-6">
                     <div>
                         <h1 className="text-2xl font-bold">{trader.TraderName}</h1>
-                        <p className="text-gray-600">الرصيد الحالي: {balance.toLocaleString()} ر.س</p>
+                        <p className="text-gray-600">الرصيد الحالي: {balance.toLocaleString()} ج.م</p>
                     </div>
                     <Link
                         href="/traders"
@@ -57,8 +57,8 @@ export default function Show() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <h3 className="text-lg font-semibold mb-2">الحساب</h3>
-                                <p><strong>الرصيد الحالي:</strong> {balance.toLocaleString()} ر.س</p>
-                                <p><strong>المبيعات الإجمالية:</strong> {totals.totalSales.toLocaleString()} ر.س</p>
+                                <p><strong>الرصيد الحالي:</strong> {balance.toLocaleString()} ج.م</p>
+                                <p><strong>المبيعات الإجمالية:</strong> {totals.totalSales.toLocaleString()} ج.م</p>
                             </div>
 
                             <div>
@@ -110,12 +110,12 @@ export default function Show() {
                                             {sale.SaleDate}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            {sale.TotalAmount.toLocaleString()} ر.س
+                                            {sale.TotalAmount.toLocaleString()} ج.م
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             {sale.details?.map(detail => (
                                                 <div key={detail.ProductID}>
-                                                    {detail.product?.ProductName}: {detail.Quantity} × {detail.UnitPrice?.toLocaleString() || '0'} ر.س
+                                                    {detail.product?.ProductName}: {detail.Quantity} × {detail.UnitPrice?.toLocaleString() || '0'} ج.م
                                                 </div>
                                             ))}
                                         </td>
@@ -151,12 +151,12 @@ export default function Show() {
                                             {purchase.PurchaseDate}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            {purchase.TotalAmount.toLocaleString()} ر.س
+                                            {purchase.TotalAmount.toLocaleString()} ج.م
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             {purchase.purchaseDetails?.map(detail => (
                                                 <div key={detail.PurchaseID}>
-                                                    {detail.ProductName}: {detail.Quantity} × {detail.UnitPrice.toLocaleString()} ر.س
+                                                    {detail.ProductName}: {detail.Quantity} × {detail.UnitPrice.toLocaleString()} ج.م
                                                 </div>
                                             ))}
                                         </td>
@@ -192,7 +192,7 @@ export default function Show() {
                                             {payment.PaymentDate}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            {payment.Amount.toLocaleString()} ر.س
+                                            {payment.Amount.toLocaleString()} ج.م
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             {payment.PaymentMethod || 'نقداً'}
