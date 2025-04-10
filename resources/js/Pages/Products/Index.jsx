@@ -14,7 +14,12 @@ const useDebounce = (value, delay) => {
 };
 
 export default function ProductsIndex() {
-  const { products = [], links = [], purchases = [] } = usePage().props;
+  const { products = [], links = [], purchases = [], productSummary = {
+    totalProducts: 0,
+    totalValue: 0,
+    expectedSalesValue: 0,
+    expectedProfit: 0
+  } } = usePage().props;
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -147,6 +152,34 @@ export default function ProductsIndex() {
             </button>
           </div>
 
+          {/* Product Summary */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="bg-gray-50 p-6 rounded-lg">
+              <h3 className="text-gray-500 text-sm mb-2">عدد المنتجات</h3>
+              <p className="text-2xl font-semibold text-indigo-600">
+                {productSummary.totalProducts.toLocaleString('ar-EG')}
+              </p>
+            </div>
+            <div className="bg-gray-50 p-6 rounded-lg">
+              <h3 className="text-gray-500 text-sm mb-2">قيمة المنتجات</h3>
+              <p className="text-2xl font-semibold text-indigo-600">
+                {productSummary.totalValue.toLocaleString('ar-EG')} ج.م
+              </p>
+            </div>
+            <div className="bg-gray-50 p-6 rounded-lg">
+              <h3 className="text-gray-500 text-sm mb-2">القيمة المتوقعة للبيع</h3>
+              <p className="text-2xl font-semibold text-indigo-600">
+                {productSummary.expectedSalesValue.toLocaleString('ar-EG')} ج.م
+              </p>
+            </div>
+            <div className="bg-gray-50 p-6 rounded-lg">
+              <h3 className="text-gray-500 text-sm mb-2">صافي الربح المتوقع</h3>
+              <p className="text-2xl font-semibold text-indigo-600">
+                {productSummary.expectedProfit.toLocaleString('ar-EG')} ج.م
+              </p>
+            </div>
+          </div>
+
           {errors && Object.keys(errors).length > 0 && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md text-red-700">
               <ul className="list-disc list-inside">
@@ -164,7 +197,7 @@ export default function ProductsIndex() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="بحث عن منتج..."
-                className="w-full py-3 px-4 pr-10 text-right bg-white border border-gray-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-200"
+                className="w-full py-3 px-4 pr-10 text-right bg-white border border-gray-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
               <FaSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             </div>
@@ -176,7 +209,7 @@ export default function ProductsIndex() {
                 <tr>
                   <th className="px-6 py-4 text-right text-sm font-semibold text-indigo-700 uppercase tracking-wider">الاسم</th>
                   <th className="px-6 py-4 text-right text-sm font-semibold text-indigo-700 uppercase tracking-wider">الكمية</th>
-                  <th className="px-6 py-4 text-right text-sm font-semibold text-indigo-700 uppercase tracking-wider">سعر الوحدة</th>
+                  <th className="px-6 py-4 text-right text-sm font-semibold text-indigo-700 uppercase tracking-wider">سعر البيع</th>
                   <th className="px-6 py-4 text-right text-sm font-semibold text-indigo-700 uppercase tracking-wider">تكلفة الوحدة</th>
                   <th className="px-6 py-4 text-right text-sm font-semibold text-indigo-700 uppercase tracking-wider">الحالة</th>
                   <th className="px-6 py-4 text-right text-sm font-semibold text-indigo-700 uppercase tracking-wider">الإجراءات</th>
@@ -193,7 +226,7 @@ export default function ProductsIndex() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{product.IsActive ? 'نشط' : 'غير نشط'}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex items-center justify-end space-x-3 space-x-reverse">
-                          <button onClick={() => handleAddQuantity(product)} className="text-green-500 hover:text-green-700 transition-colors duration-200">إضافة كمية</button>
+                          {/* <button onClick={() => handleAddQuantity(product)} className="text-green-500 hover:text-green-700 transition-colors duration-200">إضافة كمية</button> */}
                           <button onClick={() => { setSelectedProduct(product); setShowEditModal(true); }} className="text-yellow-500 hover:text-yellow-700 transition-colors duration-200">تعديل</button>
                           <button onClick={() => handleDelete(product.ProductID)} className="text-red-500 hover:text-red-700 transition-colors duration-200">حذف</button>
                         </div>
@@ -294,7 +327,7 @@ export default function ProductsIndex() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">سعر الوحدة</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">سعر البيع</label>
                       <div className="relative">
                         <input
                           type="number"
@@ -302,7 +335,7 @@ export default function ProductsIndex() {
                           value={formData.UnitPrice}
                           onChange={(e) => setData('UnitPrice', e.target.value)}
                           className="w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 pr-10"
-                          placeholder="سعر الوحدة"
+                          placeholder="سعر البيع"
                         />
                         <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">ج.م</span>
                       </div>

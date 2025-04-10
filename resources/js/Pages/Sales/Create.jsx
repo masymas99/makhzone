@@ -233,7 +233,7 @@ export default function Create() {
                   <thead>
                     <tr className="bg-gray-200">
                       <th className="border border-gray-300 p-4 text-right font-semibold text-gray-800">المنتج</th>
-                      <th className="border border-gray-300 p-4 text-right font-semibold text-gray-800">السعر الوحدة</th>
+                      <th className="border border-gray-300 p-4 text-right font-semibold text-gray-800">السعر البيع</th>
                       <th className="border border-gray-300 p-4 text-right font-semibold text-gray-800">الكمية المتاحة</th>
                       <th className="border border-gray-300 p-4 text-right font-semibold text-gray-800">الكمية المطلوبة</th>
                       <th className="border border-gray-300 p-4 text-right font-semibold text-gray-800">المبلغ الفرعي</th>
@@ -307,7 +307,7 @@ export default function Create() {
                   <thead>
                     <tr className="bg-gray-200">
                       <th className="border border-gray-300 p-4 text-right font-semibold text-gray-800">المنتج</th>
-                      <th className="border border-gray-300 p-4 text-right font-semibold text-gray-800">السعر الوحدة</th>
+                      <th className="border border-gray-300 p-4 text-right font-semibold text-gray-800">السعر البيع</th>
                       <th className="border border-gray-300 p-4 text-right font-semibold text-gray-800">الكمية</th>
                       <th className="border border-gray-300 p-4 text-right font-semibold text-gray-800">المبلغ الفرعي</th>
                     </tr>

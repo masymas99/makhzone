@@ -204,7 +204,7 @@ export default function PurchasesCreate({ products }) {
 
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                    سعر الوحدة
+                                                    سعر البيع
                                                 </label>
                                                 <input
                                                     type="number"

@@ -2,78 +2,113 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Expense;
-use App\Models\Purchase;
-use App\Models\PurchaseDetail;
 use App\Models\Sale;
-use App\Models\SaleDetail;
-use App\Models\Payment;
+use App\Models\Purchase;
+use App\Models\Product;
 use App\Models\Trader;
+use App\Models\Expense;
 use Illuminate\Http\Request;
-use Carbon\Carbon;
+use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
     public function index()
     {
+        // Calculate total products
+        $totalProducts = Product::count();
+
+        // Calculate total sales
+        $totalSales = Sale::sum('TotalAmount');
+
+        // Calculate total purchases
+        $totalPurchases = Purchase::sum('TotalAmount');
+
         // Calculate total expenses
         $totalExpenses = Expense::sum('Amount');
-        
-        // Calculate total purchases (sum of all purchase details subtotals)
-        $totalPurchases = PurchaseDetail::sum('SubTotal');
-        
-        // Calculate total sales by summing UnitPrice * Quantity
-        $totalSales = DB::table('sale_details')
-            ->select(DB::raw('SUM(UnitPrice * Quantity) as total'))
-            ->value('total') ?? 0;
-        
+
         // Calculate total profit (Sales - Purchases - Expenses)
         $totalProfit = $totalSales - ($totalPurchases + $totalExpenses);
-        
-        // Get total debts by summing unpaid amounts from traders
+
+        // Calculate product profit
+        $productProfit = DB::table('sale_details')
+            ->join('products', 'sale_details.ProductID', '=', 'products.ProductID')
+            ->select(
+                DB::raw('SUM((sale_details.UnitPrice - products.UnitCost) * sale_details.Quantity) as profit')
+            )
+            ->value('profit') ?? 0;
+
+        // Count total traders
+        $totalTraders = Trader::count();
+
+        // Calculate total debts
         $totalDebts = Trader::where('Balance', '>', 0)
             ->sum('Balance');
-        
-        // Get recent activities
-        $recentExpenses = Expense::orderBy('ExpenseDate', 'desc')->take(5)->get();
-        
-        $recentPurchases = Purchase::with('purchaseDetails')
-            ->orderBy('created_at', 'desc')
-            ->take(5)
-            ->get()
-            ->map(function($purchase) {
-                return [
-                    'id' => $purchase->PurchaseID,
-                    'product_name' => $purchase->purchaseDetails->first()->product->ProductName ?? 'غير معروف',
-                    'purchase_date' => $purchase->created_at,
-                    'total_cost' => $purchase->purchaseDetails->sum('SubTotal')
-                ];
-            });
-        
-        $recentSales = Sale::with('details')
-            ->orderBy('created_at', 'desc')
-            ->take(5)
-            ->get()
-            ->map(function($sale) {
-                return [
-                    'id' => $sale->SaleID,
-                    'total_amount' => $sale->details->sum(function($detail) {
-                        return $detail->UnitPrice * $detail->Quantity;
-                    }),
-                    'created_at' => $sale->created_at
-                ];
-            });
 
-        return inertia('Dashboard', [
-            'totalExpenses' => $totalExpenses,
-            'totalPurchases' => $totalPurchases,
+        // Get recent sales
+        $recentSales = Sale::with(['details.product'])->latest()->take(5)->get()->map(function($sale) {
+            return [
+                'SaleID' => $sale->SaleID,
+                'InvoiceNumber' => $sale->InvoiceNumber,
+                'SaleDate' => $sale->SaleDate,
+                'TotalAmount' => $sale->TotalAmount
+            ];
+        });
+
+        // Get recent purchases
+        $recentPurchases = Purchase::with(['purchaseDetails.product'])->latest()->take(5)->get()->map(function($purchase) {
+            return [
+                'PurchaseID' => $purchase->PurchaseID,
+                'BatchNumber' => $purchase->BatchNumber,
+                'PurchaseDate' => $purchase->PurchaseDate,
+                'TotalAmount' => $purchase->TotalAmount
+            ];
+        });
+
+        // Get recent expenses
+        $recentExpenses = Expense::latest()->take(5)->get()->map(function($expense) {
+            return [
+                'ExpenseID' => $expense->ExpenseID,
+                'Description' => $expense->Description,
+                'ExpenseDate' => $expense->ExpenseDate,
+                'Amount' => $expense->Amount
+            ];
+        });
+
+        // Get daily sales stats
+        $salesStats = Sale::select(
+            DB::raw('DATE(SaleDate) as date'),
+            DB::raw('SUM(TotalAmount) as amount')
+        )
+        ->whereDate('SaleDate', '>=', now()->subDays(7))
+        ->groupBy('date')
+        ->get()
+        ->toArray();
+
+        // Get monthly purchases stats
+        $purchaseStats = Purchase::select(
+            DB::raw('DATE_FORMAT(PurchaseDate, "%M") as month'),
+            DB::raw('SUM(TotalAmount) as amount')
+        )
+        ->whereYear('PurchaseDate', now()->year)
+        ->groupBy('month')
+        ->get()
+        ->toArray();
+
+        return Inertia::render('Dashboard', [
+            'totalProducts' => $totalProducts,
             'totalSales' => $totalSales,
+            'totalPurchases' => $totalPurchases,
+            'totalExpenses' => $totalExpenses,
             'totalProfit' => $totalProfit,
+            'productProfit' => $productProfit,
+            'totalTraders' => $totalTraders,
             'totalDebts' => $totalDebts,
-            'recentExpenses' => $recentExpenses,
+            'recentSales' => $recentSales,
             'recentPurchases' => $recentPurchases,
-            'recentSales' => $recentSales
+            'recentExpenses' => $recentExpenses,
+            'salesStats' => $salesStats,
+            'purchaseStats' => $purchaseStats,
         ]);
     }
 }

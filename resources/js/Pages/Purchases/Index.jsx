@@ -96,7 +96,7 @@ export default function PurchasesIndex() {
                                         <th className="px-6 py-3">رقم المنتج</th>
                                         <th className="px-6 py-3">اسم المنتج</th>
                                         <th className="px-6 py-3">الكمية</th>
-                                        <th className="px-6 py-3">سعر الوحدة</th>
+                                        <th className="px-6 py-3">سعر البيع</th>
                                         <th className="px-6 py-3">المبلغ الفرعي</th>
                                         <th className="px-6 py-3 cursor-pointer" onClick={() => handleSort('total_amount')}>
                                             المبلغ الإجمالي {sortField === 'total_amount' && (sortOrder === 'asc' ? '▲' : '▼')}

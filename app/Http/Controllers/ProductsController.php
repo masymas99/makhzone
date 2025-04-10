@@ -27,10 +27,21 @@ class ProductsController extends Controller
 
         $purchases = Purchase::orderBy('PurchaseDate', 'desc')->get();
 
+        // Calculate product summary
+        $productSummary = [
+            'totalProducts' => Product::count(),
+            'totalValue' => Product::sum(DB::raw('StockQuantity * UnitCost')),
+            'expectedSalesValue' => Product::sum(DB::raw('StockQuantity * UnitPrice')),
+            'expectedProfit' => Product::select(
+                DB::raw('SUM((UnitPrice - UnitCost) * StockQuantity) as profit')
+            )->value('profit') ?? 0,
+        ];
+
         return Inertia::render('Products/Index', [
             'products' => $products->items(),
             'links' => $products->links(),
             'purchases' => $purchases,
+            'productSummary' => $productSummary,
         ]);
     }
 

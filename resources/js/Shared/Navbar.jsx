@@ -1,6 +1,25 @@
-import { Link } from '@inertiajs/react'
+import React, { useState } from 'react';
+import { Link, usePage } from '@inertiajs/react';
+import { Inertia } from '@inertiajs/inertia';
 
 export default function Navbar() {
+    const [showMenu, setShowMenu] = useState(false);
+    const { auth } = usePage().props;
+
+    const handleLogout = () => {
+        Inertia.post(route('logout'), {}, {
+            onBefore: () => {
+                setShowMenu(false);
+            },
+            onSuccess: () => {
+                setShowMenu(false);
+            },
+            onError: () => {
+                setShowMenu(false);
+            }
+        });
+    };
+
     return (
         <nav className="bg-gray-800 fixed w-full top-0 z-50 shadow-md">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -25,16 +44,13 @@ export default function Navbar() {
                         <Link href="/sales" className="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">المبيعات</Link>
                         <Link href="/purchases" className="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">المشتريات</Link>
                         <Link href="/expenses" className="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">المصروفات</Link>
-                        <Link href="/payments" className="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">الدفعات</Link>
+                        {/* <Link href="/payments" className="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">الدفعات</Link> */}
                     </div>
 
                     {/* Logout button */}
                     <div className="hidden md:block">
                         <button
-                            onClick={(e) => {
-                                e.preventDefault();
-                                Link.visit('/logout', { method: 'post' });
-                            }}
+                            onClick={handleLogout}
                             className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
                         >
                             تسجيل الخروج
@@ -54,10 +70,7 @@ export default function Navbar() {
                     <Link href="/expenses" className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white">المصروفات</Link>
                     <Link href="/payments" className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white">الدفعات</Link>
                     <button
-                        onClick={(e) => {
-                            e.preventDefault();
-                            Link.visit('/logout', { method: 'post' });
-                        }}
+                        onClick={handleLogout}
                         className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
                     >
                         تسجيل الخروج
