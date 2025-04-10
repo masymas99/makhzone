@@ -28,7 +28,7 @@ class Purchase extends Model
 
     public function trader()
     {
-        return $this->belongsTo(Trader::class, 'TraderID');
+        return $this->belongsTo(Trader::class, 'TraderID', 'TraderID');
     }
 
     public function purchaseDetails()

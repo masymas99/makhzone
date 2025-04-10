@@ -243,7 +243,6 @@ export default function Create() {
                   <tbody>
                     {selectedProducts.map((item, index) => {
                       const product = getProductDetails(item.ProductID);
-                      console.log('Product details for ID:', item.ProductID, '=>', product);
                       return (
                         <tr key={index} className="hover:bg-gray-50">
                           <td className="border border-gray-300 p-4">

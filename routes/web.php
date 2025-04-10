@@ -23,6 +23,7 @@ Route::middleware(['auth'])->group(function () {
    
     Route::get('/traders/financials', [TraderFinancialController::class, 'index'])->name('traders.financials');
     Route::get('/traders/{id}/financials', [TraderFinancialController::class, 'show'])->name('traders.financials.show');
+    Route::get('/traders/{id}/dashboard', [App\Http\Controllers\TraderController::class, 'dashboard'])->name('traders.dashboard');
 
     // Manual payments routes
     Route::get('/traders/{trader}/payments/create', [App\Http\Controllers\PaymentController::class, 'create'])->name('traders.payments.create');

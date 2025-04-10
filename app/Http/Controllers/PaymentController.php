@@ -23,31 +23,63 @@ class PaymentController extends Controller
         return Inertia::render('Payments/Index', ['payments' => $payments]);
     }
 
+    public function create(Request $request)
+    {
+        $traderId = $request->query('trader_id');
+        
+        if (!$traderId) {
+            return redirect()->back()->with('error', 'يجب تحديد التاجر');
+        }
+
+        $trader = Trader::findOrFail($traderId);
+
+        return Inertia::render('Payments/Create', [
+            'trader' => $trader,
+            'paymentMethods' => [
+                'cash' => 'نقداً',
+                'bank_transfer' => 'تحويل بنكي',
+                'check' => 'شيك',
+                'other' => 'طريقة أخرى'
+            ]
+        ]);
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'TraderID' => 'required|exists:traders,TraderID',
-            'Amount' => 'required|numeric|min:0',
-            'PaymentDate' => 'required|date',
-            'SaleID' => 'nullable|exists:sales,SaleID'
+            'trader_id' => 'required|exists:traders,TraderID',
+            'amount' => 'required|numeric|min:0',
+            'payment_method' => 'required|string',
+            'payment_date' => 'required|date',
+            'notes' => 'nullable|string',
+            'sale_id' => 'nullable|exists:sales,SaleID',
         ]);
 
-        $payment = $this->payment->create($validated);
-        return redirect()->route('payments.index');
+        $trader = Trader::findOrFail($validated['trader_id']);
+
+        // Update trader balance
+        $trader->update([
+            'Balance' => $trader->Balance - $validated['amount']
+        ]);
+
+        $payment = Payment::create([
+            'TraderID' => $validated['trader_id'],
+            'Amount' => $validated['amount'],
+            'PaymentMethod' => $validated['payment_method'],
+            'PaymentDate' => $validated['payment_date'],
+            'Notes' => $validated['notes'],
+            'Status' => 'confirmed',
+            'SaleID' => $validated['sale_id'] ?? null,
+        ]);
+
+        return redirect()->route('traders.show', $trader->TraderID)
+            ->with('success', 'تم إضافة الدفعة بنجاح');
     }
 
     public function show($id)
     {
         $payment = $this->payment->with(['trader', 'sale'])->findOrFail($id);
         return Inertia::render('Payments/Show', ['payment' => $payment]);
-    }
-
-    public function create($trader)
-    {
-        $trader = Trader::findOrFail($trader);
-        return Inertia::render('Traders/AddPayment', [
-            'trader' => $trader
-        ]);
     }
 
     public function storeManual(Request $request, $trader)

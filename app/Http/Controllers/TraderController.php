@@ -73,11 +73,27 @@ class TraderController extends Controller
 
     public function show($id)
     {
-        $trader = Trader::findOrFail($id);
-        $trader->totalDebt = $trader->TotalSales - $trader->TotalPayments;
+        $trader = Trader::with([
+            'sales' => function($query) {
+                $query->with('details');
+            },
+            'payments'
+        ])->findOrFail($id);
+
+        // Calculate totals
+        $totalSales = $trader->sales->sum('TotalAmount');
+        $totalPayments = $trader->payments->sum('Amount');
+        
+        // Calculate balance
+        $balance = $totalSales - $totalPayments;
 
         return Inertia::render('Traders/Show', [
-            'trader' => $trader
+            'trader' => $trader,
+            'balance' => $balance,
+            'totals' => [
+                'totalSales' => $totalSales,
+                'totalPayments' => $totalPayments
+            ]
         ]);
     }
 
@@ -161,6 +177,48 @@ class TraderController extends Controller
             'sales' => $sales,
             'payments' => $payments
         ]);
+    }
+
+    public function dashboard($id)
+    {
+        try {
+            $trader = Trader::with([
+                'sales' => function($query) {
+                    $query->with('details')->orderBy('SaleDate', 'desc');
+                },
+                'payments' => function($query) {
+                    $query->with('purchase')->orderBy('PaymentDate', 'desc');
+                }
+            ])->findOrFail($id);
+
+            // Calculate statistics
+            $stats = [
+                'totalSales' => $trader->sales->sum('TotalAmount') ?? 0,
+                'totalPayments' => $trader->payments->sum('Amount') ?? 0,
+                'balance' => ($trader->sales->sum('TotalAmount') ?? 0) - ($trader->payments->sum('Amount') ?? 0),
+                'pendingPayments' => $trader->payments->filter(function($payment) {
+                    return $payment->Status !== 'confirmed';
+                })->count(),
+                'lastPayment' => $trader->payments->sortByDesc('PaymentDate')->first(),
+                'salesByMonth' => $trader->sales->groupBy(function($sale) {
+                    return $sale->SaleDate ? $sale->SaleDate->format('Y-m') : null;
+                })->map(function($sales) {
+                    return $sales->sum('TotalAmount');
+                })->toArray(),
+                'paymentsByMonth' => $trader->payments->groupBy(function($payment) {
+                    return $payment->PaymentDate ? $payment->PaymentDate->format('Y-m') : null;
+                })->map(function($payments) {
+                    return $payments->sum('Amount');
+                })->toArray()
+            ];
+
+            return Inertia::render('Traders/Dashboard', [
+                'trader' => $trader,
+                'stats' => $stats
+            ]);
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'حدث خطأ أثناء تحميل البيانات');
+        }
     }
 
     private function calculateDebt($trader)

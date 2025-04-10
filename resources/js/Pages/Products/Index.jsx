@@ -112,7 +112,6 @@ export default function ProductsIndex() {
   const handleDelete = (id) => {
     if (window.confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
       destroy(route('products.destroy', id), {
-        onSuccess: () => console.log('Product deleted successfully'),
         onError: (errors) => console.error('Delete error:', errors),
       });
     }

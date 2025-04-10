@@ -1,38 +1,72 @@
 import React from 'react';
 import { Link, Head, usePage } from '@inertiajs/react';
-import Layout from '@/Layouts/Layout';
+import Navbar from '@/Shared/Navbar';
 
 export default function Show() {
     const { trader, balance, totals } = usePage().props;
 
+    if (!trader) {
+        return (
+            <div className="min-h-screen bg-gray-100">
+                <Navbar />
+                <div className="container mx-auto px-4 py-8">
+                    <div className="text-center">
+                        <h1 className="text-2xl font-bold">جاري تحميل البيانات...</h1>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Calculate additional metrics
+    const totalSales = totals?.totalSales || 0;
+    const totalPayments = totals?.totalPayments || 0;
+    const pendingPayments = trader.payments?.filter(p => p.Status !== 'confirmed').length || 0;
+
     return (
-        <Layout>
+        <div className="min-h-screen bg-gray-100 ">
+            <Navbar />
             <Head title={`تفاصيل التاجر - ${trader.TraderName}`} />
 
-            <div className="container mx-auto px-4 py-8">
+            <div className="container mx-auto px-4 py-8 mt-12">
                 <div className="flex justify-between items-center mb-6">
                     <div>
                         <h1 className="text-2xl font-bold">{trader.TraderName}</h1>
-                        <p className="text-gray-600">الرصيد الحالي: {balance.toLocaleString()} ج.م</p>
+                        <div className="flex items-center gap-4">
+                            <p className="text-gray-600">الرصيد الحالي: {balance.toLocaleString()} ج.م</p>
+                            <span className={`px-2 py-1 rounded-full text-xs ${
+                                balance >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                            }`}>
+                                {balance >= 0 ? 'رصيد إيجابي' : 'رصيد سلبي'}
+                            </span>
+                        </div>
                     </div>
-                    <Link
-                        href="/traders"
-                        className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
-                    >
-                        الرجوع للقائمة
-                    </Link>
+                    <div className="flex gap-4">
+                        <Link
+                            href="/traders"
+                            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                        >
+                            الرجوع للقائمة
+                        </Link>
+                        <Link
+                            href={`/payments/create?trader_id=${trader.TraderID}`}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                        >
+                            إضافة دفعة يدوية
+                        </Link>
+                    </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {/* Trader Information */}
-                    <div className="bg-white rounded-lg shadow p-6">
-                        <h2 className="text-xl font-bold mb-4">معلومات التاجر</h2>
-                        <div className="space-y-4">
-                            <div>
+                {/* Basic Information */}
+                <div className="bg-white rounded-lg shadow p-6 mb-8">
+                    <h2 className="text-xl font-bold mb-4">معلومات التاجر</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <div className="mb-4">
                                 <label className="block text-sm font-medium text-gray-700">الاسم</label>
                                 <p className="mt-1 text-gray-900">{trader.TraderName}</p>
                             </div>
-                            <div>
+                            <div className="mb-4">
                                 <label className="block text-sm font-medium text-gray-700">رقم الهاتف</label>
                                 <p className="mt-1 text-gray-900">{trader.Phone}</p>
                             </div>
@@ -40,7 +74,9 @@ export default function Show() {
                                 <label className="block text-sm font-medium text-gray-700">العنوان</label>
                                 <p className="mt-1 text-gray-900">{trader.Address}</p>
                             </div>
-                            <div>
+                        </div>
+                        <div>
+                            <div className="mb-4">
                                 <label className="block text-sm font-medium text-gray-700">الحالة</label>
                                 <span className={`mt-1 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                                     trader.IsActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
@@ -48,148 +84,152 @@ export default function Show() {
                                     {trader.IsActive ? 'نشط' : 'غير نشط'}
                                 </span>
                             </div>
-                        </div>
-                    </div>
-
-                    {/* Financial Information */}
-                    <div className="bg-white rounded-lg shadow p-6">
-                        <h2 className="text-xl font-bold mb-4">المعلومات المالية</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <h3 className="text-lg font-semibold mb-2">الحساب</h3>
-                                <p><strong>الرصيد الحالي:</strong> {balance.toLocaleString()} ج.م</p>
-                                <p><strong>المبيعات الإجمالية:</strong> {totals.totalSales.toLocaleString()} ج.م</p>
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium text-gray-700">تاريخ الإنشاء</label>
+                                <p className="mt-1 text-gray-900">
+                                    {new Date(trader.CreatedAt).toLocaleDateString('ar-EG')}
+                                </p>
                             </div>
-
                             <div>
-                                <h3 className="text-lg font-semibold mb-2">الحركة المالية</h3>
-                                <table className="w-full border">
-                                    <thead>
-                                        <tr>
-                                            <th className="border p-2">التاريخ</th>
-                                            <th className="border p-2">نوع المعاملة</th>
-                                            <th className="border p-2">المبلغ</th>
-                                            <th className="border p-2">الوصف</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {trader.financials.map((financial) => (
-                                            <tr key={financial.id}>
-                                                <td className="border p-2">{new Date(financial.created_at).toLocaleDateString('ar-EG')}</td>
-                                                <td className="border p-2">{financial.transaction_type}</td>
-                                                <td className="border p-2" style={{ color: financial.transaction_type === 'credit' ? 'green' : 'red' }}>
-                                                    {financial.transaction_type === 'credit' ? '+' : '-'} {financial.payment_amount || financial.sale_amount}
-                                                </td>
-                                                <td className="border p-2">{financial.description}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                <label className="block text-sm font-medium text-gray-700">آخر تحديث</label>
+                                <p className="mt-1 text-gray-900">
+                                    {new Date(trader.UpdatedAt).toLocaleDateString('ar-EG')}
+                                </p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Sales Details */}
-                <div className="bg-white rounded-lg shadow p-6 mt-8">
-                    <h2 className="text-xl font-bold mb-4">تفاصيل المبيعات</h2>
+                {/* Financial Summary */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div className="bg-white rounded-lg shadow p-6">
+                        <h3 className="text-lg font-semibold mb-4">المجمل</h3>
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-center">
+                                <span>إجمالي المبيعات</span>
+                                <span className="font-bold text-green-600">
+                                    {totalSales.toLocaleString()} ج.م
+                                </span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span>إجمالي المدفوعات</span>
+                                <span className="font-bold text-blue-600">
+                                    {totalPayments.toLocaleString()} ج.م
+                                </span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span>المبلغ المستحق</span>
+                                <span className={`font-bold ${
+                                    balance >= 0 ? 'text-green-600' : 'text-red-600'
+                                }`}>
+                                    {balance.toLocaleString()} ج.م
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-lg shadow p-6">
+                        <h3 className="text-lg font-semibold mb-4">المدفوعات</h3>
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-center">
+                                <span>إجمالي المدفوعات</span>
+                                <span className="font-bold text-blue-600">
+                                    {totalPayments.toLocaleString()} ج.م
+                                </span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span>المدفوعات المعلقة</span>
+                                <span className="font-bold text-orange-600">
+                                    {pendingPayments} مدفوعات
+                                </span>
+                            </div>
+                            {trader.payments?.length > 0 && (
+                                <div className="flex justify-between items-center">
+                                    <span>آخر دفعة</span>
+                                    <span className="font-bold text-gray-600">
+                                        {new Date(trader.payments[0].PaymentDate).toLocaleDateString('ar-EG')}
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Sales History */}
+                <div className="bg-white rounded-lg shadow p-6">
+                    <h2 className="text-xl font-bold mb-4">تاريخ المبيعات</h2>
+                    <p className="text-gray-600 mb-4">
+                        إجمالي المبيعات: {trader.sales?.length || 0} مبيعات
+                    </p>
                     <div className="overflow-x-auto">
                         <table className="min-w-full">
                             <thead>
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">التاريخ</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">المبلغ</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">المنتجات</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">التفاصيل</th>
+                                <tr className="bg-gray-50">
+                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">التاريخ</th>
+                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">المبلغ الإجمالي</th>
+                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الحالة</th>
+                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">التفاصيل</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-200">
+                            <tbody className="bg-white divide-y divide-gray-200">
                                 {trader.sales?.map((sale) => (
                                     <tr key={sale.SaleID}>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            {sale.SaleDate}
+                                            {new Date(sale.SaleDate).toLocaleDateString('ar-EG')}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             {sale.TotalAmount.toLocaleString()} ج.م
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            {sale.details?.map(detail => (
-                                                <div key={detail.ProductID}>
-                                                    {detail.product?.ProductName}: {detail.Quantity} × {detail.UnitPrice?.toLocaleString() || '0'} ج.م
-                                                </div>
-                                            ))}
+                                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                                sale.Status === 'confirmed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                                            }`}>
+                                                {sale.Status === 'confirmed' ? 'مؤكد' : 'قيد التأكيد'}
+                                            </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <Link href={`/sales/${sale.SaleID}`} className="text-blue-600 hover:text-blue-900">
+                                            <Link 
+                                                href={`/sales/${sale.SaleID}`} 
+                                                className="text-blue-600 hover:text-blue-900"
+                                            >
                                                 عرض التفاصيل
                                             </Link>
                                         </td>
                                     </tr>
-                                ))}
+                                )) || (
+                                    <tr>
+                                        <td colSpan="4" className="text-center py-4 text-gray-500">
+                                            لا توجد مبيعات حتى الآن
+                                        </td>
+                                    </tr>
+                                )}
                             </tbody>
                         </table>
                     </div>
                 </div>
 
-                {/* Purchases Details */}
-                <div className="bg-white rounded-lg shadow p-6 mt-8">
-                    <h2 className="text-xl font-bold mb-4">تفاصيل المشتريات</h2>
+                {/* Payment History */}
+                <div className="mt-8 bg-white rounded-lg shadow p-6">
+                    <h2 className="text-xl font-bold mb-4">تاريخ المدفوعات</h2>
+                    <p className="text-gray-600 mb-4">
+                        إجمالي المدفوعات: {trader.payments?.length || 0} مدفوعات
+                    </p>
                     <div className="overflow-x-auto">
                         <table className="min-w-full">
                             <thead>
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">التاريخ</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">المبلغ</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">المنتجات</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">التفاصيل</th>
+                                <tr className="bg-gray-50">
+                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">التاريخ</th>
+                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">المبلغ</th>
+                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">طريقة الدفع</th>
+                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">حالة الدفع</th>
+                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">المبيعات المرتبطة</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-200">
-                                {trader.purchases?.map((purchase) => (
-                                    <tr key={purchase.PurchaseID}>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            {purchase.PurchaseDate}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            {purchase.TotalAmount.toLocaleString()} ج.م
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            {purchase.purchaseDetails?.map(detail => (
-                                                <div key={detail.PurchaseID}>
-                                                    {detail.ProductName}: {detail.Quantity} × {detail.UnitPrice.toLocaleString()} ج.م
-                                                </div>
-                                            ))}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <Link href={`/purchases/${purchase.PurchaseID}`} className="text-blue-600 hover:text-blue-900">
-                                                عرض التفاصيل
-                                            </Link>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                {/* Payments Details */}
-                <div className="bg-white rounded-lg shadow p-6 mt-8">
-                    <h2 className="text-xl font-bold mb-4">تفاصيل المدفوعات</h2>
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full">
-                            <thead>
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">التاريخ</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">المبلغ</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">نوع الدفع</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">الملاحظات</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-200">
+                            <tbody className="bg-white divide-y divide-gray-200">
                                 {trader.payments?.map((payment) => (
                                     <tr key={payment.PaymentID}>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            {payment.PaymentDate}
+                                            {new Date(payment.PaymentDate).toLocaleDateString('ar-EG')}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             {payment.Amount.toLocaleString()} ج.م
@@ -198,17 +238,37 @@ export default function Show() {
                                             {payment.PaymentMethod || 'نقداً'}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            {payment.Notes || 'لا توجد ملاحظات'}
+                                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                                payment.Status === 'confirmed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                                            }`}>
+                                                {payment.Status === 'confirmed' ? 'مؤكد' : 'قيد التأكيد'}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            {payment.SaleID ? (
+                                                <Link 
+                                                    href={`/sales/${payment.SaleID}`} 
+                                                    className="text-blue-600 hover:text-blue-900"
+                                                >
+                                                    مبيعات #{payment.SaleID}
+                                                </Link>
+                                            ) : 'لا توجد مبيعات مرتبطة'}
                                         </td>
                                     </tr>
-                                ))}
+                                )) || (
+                                    <tr>
+                                        <td colSpan="5" className="text-center py-4 text-gray-500">
+                                            لا توجد مدفوعات حتى الآن
+                                        </td>
+                                    </tr>
+                                )}
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
-        </Layout>
-    )
+        </div>
+    );
 }
 
-Show.layout = Layout
+Show.layout = null;

@@ -1,8 +1,7 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import React, { useState } from 'react';
 import { FaPlus, FaSearch, FaFilter, FaTrash, FaEdit, FaEye } from 'react-icons/fa';
 import { HiOutlineUserGroup } from 'react-icons/hi';
-import { usePage } from '@inertiajs/react';
 import Navbar from '@/Shared/Navbar';
 
 export default function Index() {
@@ -11,6 +10,7 @@ export default function Index() {
     const [search, setSearch] = useState('');
     const [filteredTraders, setFilteredTraders] = useState(traders);
     const [showFilters, setShowFilters] = useState(false);
+    const [confirmDelete, setConfirmDelete] = React.useState(null);
 
     const handleSearch = (e) => {
         const query = e.target.value.toLowerCase();
@@ -23,9 +23,12 @@ export default function Index() {
         setSearch(query);
     };
 
-    const handleDelete = (id) => {
-        if (window.confirm('هل أنت متأكد من حذف هذا التاجر؟')) {
+    const handleDelete = async (traderId) => {
+        if (confirmDelete === traderId) {
             // Handle delete logic here
+            setConfirmDelete(null);
+        } else {
+            setConfirmDelete(traderId);
         }
     };
 
@@ -149,32 +152,33 @@ export default function Index() {
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         {trader.TotalSales} ج.م
                                     </td>
-                                 
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         {trader.TotalPayments} ج.م
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <div className="flex items-center justify-end space-x-3 space-x-reverse">
+                                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                                        <div className="flex justify-end space-x-2">
                                             <Link
-                                                href={route('traders.show', trader.TraderID)}
-                                                className="p-2 hover:bg-indigo-100 rounded-full text-indigo-500 hover:text-indigo-700 transition-colors duration-200"
-                                                title="عرض"
+                                                href={`/traders/${trader.TraderID}`}
+                                                className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 flex items-center gap-1"
                                             >
-                                                <FaEye />
+                                                <FaEye className="h-4 w-4" />
+                                                عرض
                                             </Link>
                                             <Link
-                                                href={route('traders.edit', trader.TraderID)}
-                                                className="p-2 hover:bg-green-100 rounded-full text-green-500 hover:text-green-700 transition-colors duration-200"
-                                                title="تعديل"
+                                                href={`/traders/${trader.TraderID}/edit`}
+                                                className="px-3 py-1 bg-yellow-600 text-white rounded hover:bg-yellow-700 flex items-center gap-1"
                                             >
-                                                <FaEdit />
+                                                <FaEdit className="h-4 w-4" />
+                                                تعديل
                                             </Link>
                                             <button
                                                 onClick={() => handleDelete(trader.TraderID)}
-                                                className="p-2 hover:bg-red-100 rounded-full text-red-500 hover:text-red-700 transition-colors duration-200"
-                                                title="حذف"
+                                                className={`px-3 py-1 rounded flex items-center gap-1 ${
+                                                    confirmDelete === trader.TraderID ? 'bg-red-700' : 'bg-red-600'
+                                                } text-white hover:bg-red-700`}
                                             >
-                                                <FaTrash />
+                                                <FaTrash className="h-4 w-4" />
+                                                {confirmDelete === trader.TraderID ? 'تأكيد الحذف' : 'حذف'}
                                             </button>
                                         </div>
                                     </td>
