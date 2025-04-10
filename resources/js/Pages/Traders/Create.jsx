@@ -7,7 +7,7 @@ const Create = () => {
     TraderName: '',
     Phone: '',
     Address: '',
-    IsActive: true
+    IsActive: true,
   });
 
   const handleSubmit = (e) => {
@@ -16,68 +16,78 @@ const Create = () => {
   };
 
   return (
-    <>
+    <div className="min-h-screen bg-gray-100">
       <Head title="إضافة تاجر جديد" />
       <Navbar />
-      <div className="py-12">
-        <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-          <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
-            <h1 className="text-xl font-semibold mb-6">إضافة تاجر جديد</h1>
-            <form onSubmit={handleSubmit}>
-              <div className="mb-4">
-                <label className="block mb-2">اسم التاجر</label>
-                <input
-                  type="text"
-                  value={data.TraderName}
-                  onChange={(e) => setData('TraderName', e.target.value)}
-                  className="w-full p-2 border rounded"
-                />
-                {errors.TraderName && <p className="text-red-500 text-sm mt-1">{errors.TraderName}</p>}
-              </div>
-              <div className="mb-4">
-                <label className="block mb-2">الهاتف</label>
-                <input
-                  type="text"
-                  value={data.Phone}
-                  onChange={(e) => setData('Phone', e.target.value)}
-                  className="w-full p-2 border rounded"
-                />
-                {errors.Phone && <p className="text-red-500 text-sm mt-1">{errors.Phone}</p>}
-              </div>
-              <div className="mb-4">
-                <label className="block mb-2">العنوان</label>
-                <textarea
-                  value={data.Address}
-                  onChange={(e) => setData('Address', e.target.value)}
-                  className="w-full p-2 border rounded"
-                />
-                {errors.Address && <p className="text-red-500 text-sm mt-1">{errors.Address}</p>}
-              </div>
-              <div className="mb-4">
-                <label className="block mb-2">الحالة</label>
-                <select
-                  value={data.IsActive}
-                  onChange={(e) => setData('IsActive', e.target.value === 'true')}
-                  className="w-full p-2 border rounded"
-                >
-                  <option value={true}>نشط</option>
-                  <option value={false}>غير نشط</option>
-                </select>
-              </div>
-              <div className="flex justify-end">
-                <button
-                  type="submit"
-                  disabled={processing}
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                >
-                  {processing ? 'جاري الحفظ...' : 'حفظ'}
-                </button>
-              </div>
-            </form>
-          </div>
+      <div className="pt-20 pb-12 px-6 max-w-2xl mx-auto">
+        <div className="bg-white rounded-lg shadow-lg p-8">
+          <h1 className="text-2xl font-bold text-gray-900 mb-8 flex items-center">
+            <span>إضافة تاجر جديد</span>
+          </h1>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label className="block mb-2 text-sm font-medium text-gray-700">اسم التاجر</label>
+              <input
+                type="text"
+                value={data.TraderName}
+                onChange={(e) => setData('TraderName', e.target.value)}
+                className="w-full py-3 px-4 text-right bg-white border border-gray-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-200"
+              />
+              {errors.TraderName && (
+                <p className="text-red-500 text-sm mt-1">{errors.TraderName}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block mb-2 text-sm font-medium text-gray-700">الهاتف</label>
+              <input
+                type="text"
+                value={data.Phone}
+                onChange={(e) => setData('Phone', e.target.value)}
+                className="w-full py-3 px-4 text-right bg-white border border-gray-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-200"
+              />
+              {errors.Phone && (
+                <p className="text-red-500 text-sm mt-1">{errors.Phone}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block mb-2 text-sm font-medium text-gray-700">العنوان</label>
+              <textarea
+                value={data.Address}
+                onChange={(e) => setData('Address', e.target.value)}
+                className="w-full py-3 px-4 text-right bg-white border border-gray-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-200 min-h-[100px]"
+              />
+              {errors.Address && (
+                <p className="text-red-500 text-sm mt-1">{errors.Address}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block mb-2 text-sm font-medium text-gray-700">الحالة</label>
+              <select
+                value={data.IsActive}
+                onChange={(e) => setData('IsActive', e.target.value === 'true')}
+                className="w-full py-3 px-4 text-right bg-white border border-gray-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-200"
+              >
+                <option value={true}>نشط</option>
+                <option value={false}>غير نشط</option>
+              </select>
+            </div>
+
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                disabled={processing}
+                className="px-6 py-3 bg-indigo-600 text-white rounded-md shadow-md hover:bg-indigo-700 transition-colors duration-200 disabled:bg-indigo-400 disabled:cursor-not-allowed"
+              >
+                {processing ? 'جاري الحفظ...' : 'حفظ'}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
