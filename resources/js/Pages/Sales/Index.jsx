@@ -12,17 +12,11 @@ export default function Index() {
     const handleDelete = async (saleId) => {
         if (confirmDelete === saleId) {
             try {
-                // Show loading state
                 setConfirmDelete(null);
-                
-                // Delete the sale
                 await deleteForm(`/sales/${saleId}`);
-                
-                // Show success message
                 window.dispatchEvent(new Event('refresh'));
             } catch (error) {
                 console.error('Error deleting sale:', error);
-                // Show error message
                 window.dispatchEvent(new Event('error'));
             }
         } else {
@@ -31,78 +25,106 @@ export default function Index() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-100">
+        <div className="min-h-screen mt-12 bg-gray-100">
             <Navbar />
             <Head title="الفواتير المباعة" />
 
-            <div className="container mx-auto px-4 py-8 mt-12">
-                <div className="flex justify-between items-center mb-6">
-                    <h1 className="text-2xl font-bold">الفواتير المباعة</h1>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                <div className="flex justify-between items-center mb-8">
+                    <h1 className="text-2xl font-bold text-gray-900">الفواتير المباعة</h1>
                     <Link
                         href={route('sales.create')}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+                        className="px-5 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-full font-medium shadow-md hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-indigo-200"
                     >
-                        إنشاء فاتورة جديدة
+                        + إنشاء فاتورة جديدة
                     </Link>
                 </div>
 
-                <div className="bg-white rounded-lg shadow p-6">
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full">
-                            <thead>
-                                <tr className="bg-gray-50">
-                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">رقم الفاتورة</th>
-                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">التاجر</th>
-                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">التاريخ</th>
-                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الإجمالي</th>
-                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">المدفوع</th>
-                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">المتبقي</th>
-                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الحالة</th>
-                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الإجراءات</th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                                {sales?.map((sale) => (
-                                    <tr key={sale.SaleID} className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{sale.InvoiceNumber}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{sale.trader.TraderName}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{new Date(sale.SaleDate).toLocaleDateString('ar-EG')}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{sale.TotalAmount}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{sale.PaidAmount}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900" style={{ color: sale.RemainingAmount > 0 ? 'red' : 'green' }}>
-                                            {sale.RemainingAmount}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{sale.Status}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right">
-                                            <div className="flex justify-end space-x-2">
-                                                <Link
-                                                    href={route('sales.edit', sale.SaleID)}
-                                                    className="px-3 py-1 bg-yellow-600 text-white rounded hover:bg-yellow-700"
-                                                >
-                                                    تعديل
-                                                </Link>
-                                                <button
-                                                    onClick={() => handleDelete(sale.SaleID)}
-                                                    className={`px-3 py-1 rounded ${
-                                                        confirmDelete === sale.SaleID ? 'bg-red-700' : 'bg-red-600'
-                                                    } text-white hover:bg-red-700`}
-                                                >
-                                                    {confirmDelete === sale.SaleID ? 'تأكيد الحذف' : 'حذف'}
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                )) || (
-                                    <tr>
-                                        <td colSpan="8" className="text-center py-4 text-gray-500">
-                                            لا توجد فواتير حتى الآن
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                <div className="bg-white rounded-2xl shadow-lg p-6">
+                    {sales?.length > 0 ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {sales.map((sale) => (
+                                <div
+                                    key={sale.SaleID}
+                                    className="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300 border border-gray-100"
+                                >
+                                    <div className="flex justify-between items-center mb-3">
+                                        <span className="text-sm text-gray-500">
+                                            {new Date(sale.SaleDate).toLocaleDateString('ar-EG')}
+                                        </span>
+                                        <span className="text-lg font-bold text-indigo-600">
+                                            #{sale.InvoiceNumber}
+                                        </span>
+                                    </div>
+                                    <div className="text-gray-700 text-base mb-2">
+                                        <p>التاجر: {sale.trader.TraderName}</p>
+                                        <p>الإجمالي: {sale.TotalAmount} ج.م</p>
+                                        <p>المدفوع: {sale.PaidAmount} ج.م</p>
+                                        <p style={{ color: sale.RemainingAmount > 0 ? 'red' : 'green' }}>
+                                            المتبقي: {sale.RemainingAmount} ج.م
+                                        </p>
+                                        <p>الحالة: {sale.Status}</p>
+                                    </div>
+                                    <div className="flex justify-end space-x-2">
+                                        <Link
+                                            href={route('sales.edit', sale.SaleID)}
+                                            className="text-yellow-600 hover:text-yellow-800 p-1"
+                                        >
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            </svg>
+                                        </Link>
+                                        <button
+                                            onClick={() => handleDelete(sale.SaleID)}
+                                            className="text-red-600 hover:text-red-800 p-1"
+                                        >
+                                            <FaTrash className="w-5 h-5" />
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center py-12 text-gray-500">
+                            <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 14l6-6m-6 6l6-6M5 12h14M12 5v14" />
+                            </svg>
+                            لا توجد فواتير حتى الآن
+                        </div>
+                    )}
                 </div>
+
+                {/* مودال تأكيد الحذف */}
+                {confirmDelete && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md transform transition-all duration-300 scale-100">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-lg font-semibold text-gray-900">تأكيد الحذف</h3>
+                                <button
+                                    onClick={() => setConfirmDelete(null)}
+                                    className="text-gray-500 hover:text-gray-700 text-xl font-bold focus:outline-none"
+                                >
+                                    ×
+                                </button>
+                            </div>
+                            <p className="text-gray-600 mb-6 text-center">هل أنت متأكد من حذف هذه الفاتورة؟</p>
+                            <div className="flex justify-end space-x-4">
+                                <button
+                                    onClick={() => setConfirmDelete(null)}
+                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-full hover:bg-gray-200 transition-all duration-200"
+                                >
+                                    إلغاء
+                                </button>
+                                <button
+                                    onClick={() => handleDelete(confirmDelete)}
+                                    className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-full hover:bg-red-700 transition-all duration-200"
+                                >
+                                    حذف
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
