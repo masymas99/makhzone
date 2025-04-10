@@ -24,6 +24,8 @@ export default function ProductsIndex() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
@@ -115,11 +117,23 @@ export default function ProductsIndex() {
   };
 
   const handleDelete = (id) => {
-    if (window.confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
-      destroy(route('products.destroy', id), {
-        onError: (errors) => console.error('Delete error:', errors),
-      });
-    }
+    setDeleteId(id);
+    setConfirmDelete(true);
+  };
+
+  const confirmDeleteProduct = () => {
+    destroy(route('products.destroy', deleteId), {
+      onError: (errors) => console.error('Delete error:', errors),
+      onSuccess: () => {
+        setConfirmDelete(false);
+        setDeleteId(null);
+      }
+    });
+  };
+
+  const cancelDelete = () => {
+    setConfirmDelete(false);
+    setDeleteId(null);
   };
 
   return (
@@ -410,6 +424,40 @@ export default function ProductsIndex() {
                     </button>
                   </div>
                 </form>
+              </div>
+            </div>
+          )}
+          {confirmDelete && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-2xl shadow-xl max-w-md w-full transform transition-all duration-300">
+                <div className="border-b border-gray-100 px-6 py-4 flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-gray-900">تأكيد الحذف</h3>
+                  <button 
+                    onClick={cancelDelete}
+                    className="text-gray-400 hover:text-gray-500 p-1 rounded-full transition-colors"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <div className="p-6">
+                  <p className="text-gray-600 mb-4">هل أنت متأكد من حذف هذا المنتج؟</p>
+                  <div className="flex justify-end space-x-4">
+                    <button
+                      onClick={cancelDelete}
+                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-full hover:bg-gray-50 transition-colors"
+                    >
+                      إلغاء
+                    </button>
+                    <button
+                      onClick={confirmDeleteProduct}
+                      className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-full hover:bg-red-700 transition-colors"
+                    >
+                      حذف
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           )}

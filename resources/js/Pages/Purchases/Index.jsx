@@ -86,13 +86,14 @@ export default function PurchasesIndex() {
                         {sortedPurchases.length === 0 ? (
                             <div className="text-center py-12 text-gray-500">
                                 <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 14l6-6m-6 6l6-6M5 12h14M12 5v14" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 14l6-6m-6 6l6-6M5 12h14M12 5v14M12 5v14M12 5v14" />
                                 </svg>
                                 لا توجد مشتريات مسجلة حاليًا
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {sortedPurchases.map((purchase) => (
+                                    console.log(purchase),
                                     <div
                                         key={purchase.id}
                                         className="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300 border border-gray-100"
@@ -109,6 +110,23 @@ export default function PurchasesIndex() {
                                         <div className="text-sm text-gray-600 mb-3">
                                             <p>رقم الدفعة: {purchase.batch_number || '---'}</p>
                                             <p className="line-clamp-1" title={purchase.notes}>ملاحظات: {purchase.notes || 'لا توجد ملاحظات'}</p>
+                                        </div>
+                                        <div className="mt-2 space-y-1">
+                                            {purchase.details?.map((detail, index) => (
+                                                <div key={index} className="flex items-center space-x-2">
+                                                    <span className="text-sm text-gray-600">
+                                                        {detail.product_name || 'منتج غير معرف'}
+                                                    </span>
+                                                    <span className="text-sm text-gray-600">×</span>
+                                                    <span className="text-sm text-gray-600">
+                                                        {detail.quantity || 0}
+                                                    </span>
+                                                    <span className="text-sm text-gray-600">×</span>
+                                                    <span className="text-sm font-medium text-blue-600">
+                                                        {detail.unit_cost ? detail.unit_cost.toLocaleString('ar-EG') : '0'} ج.م
+                                                    </span>
+                                                </div>
+                                            ))}
                                         </div>
                                         <div className="flex justify-end space-x-2">
                                             <Link

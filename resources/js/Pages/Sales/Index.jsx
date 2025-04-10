@@ -48,13 +48,29 @@ export default function Index() {
                                     key={sale.SaleID}
                                     className="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300 border border-gray-100"
                                 >
-                                    <div className="flex justify-between items-center mb-3">
-                                        <span className="text-sm text-gray-500">
-                                            {new Date(sale.SaleDate).toLocaleDateString('ar-EG')}
-                                        </span>
-                                        <span className="text-lg font-bold text-indigo-600">
-                                            #{sale.InvoiceNumber}
-                                        </span>
+                                    <div key={sale.SaleID} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-all duration-200">
+                                        <div>
+                                            <p className="text-sm font-medium text-gray-800">
+                                                {sale.InvoiceNumber ? `فاتورة #${sale.InvoiceNumber}` : `فاتورة #${sale.SaleID}`}
+                                            </p>
+                                            <p className="text-xs text-gray-500">{new Date(sale.SaleDate).toLocaleDateString('ar-EG')}</p>
+                                            <div className="mt-2 space-y-1">
+                                                {sale.details?.map((detail, index) => (
+                                                    <div key={index} className="flex items-center space-x-2">
+                                                        <span className="text-sm text-gray-600">{detail.product?.ProductName || 'منتج غير معرف'}</span>
+                                                        <span className="text-sm text-gray-600">×</span>
+                                                        <span className="text-sm text-gray-600">{detail.Quantity || 0}</span>
+                                                        <span className="text-sm text-gray-600">×</span>
+                                                        <span className="text-sm font-medium text-green-600">
+                                                            {detail.UnitPrice ? detail.UnitPrice.toLocaleString('ar-EG') : '0'} ج.م
+                                                        </span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <p className="text-sm font-semibold text-green-600">
+                                            {sale.TotalAmount ? sale.TotalAmount.toLocaleString('ar-EG') : '0'} ج.م
+                                        </p>
                                     </div>
                                     <div className="text-gray-700 text-base mb-2">
                                         <p>التاجر: {sale.trader.TraderName}</p>
