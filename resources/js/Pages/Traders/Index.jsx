@@ -146,8 +146,13 @@ export default function Index() {
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                         {trader.Address}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        {trader.Balance} ج.م
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                        <div className={`inline-flex items-center px-2 py-1 rounded-full text-sm ${
+                                            trader.Balance >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                        }`}>
+                                            {trader.Balance >= 0 ? '+' : '-'}
+                                            {Math.abs(trader.Balance)} ج.م
+                                        </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         {trader.TotalSales} ج.م

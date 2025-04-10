@@ -45,7 +45,7 @@ class SalesController extends Controller
             // التحقق من الكميات قبل إنشاء الفاتورة
             foreach ($request->products as $product) {
                 $productModel = Product::find($product['ProductID']);
-                
+
                 if ($productModel->StockQuantity < $product['Quantity']) {
                     DB::rollBack();
                     return redirect()->back()->with('error', 'الكمية المطلوبة غير متوفرة في المخزون');
@@ -67,7 +67,7 @@ class SalesController extends Controller
             $totalAmount = 0;
             foreach ($request->products as $product) {
                 $productModel = Product::find($product['ProductID']);
-                
+
                 $subTotal = $product['Quantity'] * $productModel->UnitPrice;
                 $profit = $subTotal - ($product['Quantity'] * $productModel->UnitCost);
                 $totalAmount += $subTotal;
@@ -90,7 +90,7 @@ class SalesController extends Controller
 
             // حساب المبلغ المتبقي وتحديث الفاتورة
             $remainingAmount = $totalAmount - $request->PaidAmount;
-            
+
             $sale->update([
                 'TotalAmount' => $totalAmount,
                 'RemainingAmount' => $remainingAmount,
@@ -137,7 +137,7 @@ class SalesController extends Controller
             DB::beginTransaction();
 
             $sale = Sale::with('details.product')->findOrFail($id);
-            
+
             // First, restore the previous quantities
             foreach ($sale->details as $detail) {
                 $product = Product::find($detail->ProductID);
@@ -154,13 +154,13 @@ class SalesController extends Controller
             $totalAmount = 0;
             foreach ($request->products as $product) {
                 $productModel = Product::find($product['ProductID']);
-                
+
                 // Check if we have enough stock
                 if ($productModel->StockQuantity < $product['Quantity']) {
                     DB::rollBack();
                     return redirect()->back()->with('error', 'الكمية المطلوبة غير متوفرة في المخزون');
                 }
-                
+
                 $subTotal = $product['Quantity'] * $productModel->UnitPrice;
                 $profit = $subTotal - ($product['Quantity'] * $productModel->UnitCost);
                 $totalAmount += $subTotal;
@@ -213,23 +213,32 @@ class SalesController extends Controller
             DB::beginTransaction();
 
             $sale = Sale::with(['details', 'payments'])->findOrFail($id);
-            
+
+            // Restore product quantities
+            foreach ($sale->details as $detail) {
+                $product = Product::find($detail->ProductID);
+                if ($product) {
+                    $product->StockQuantity += $detail->Quantity;
+                    $product->save();
+                }
+            }
+
             // Delete sale details first
             $sale->details()->delete();
-            
+
             // Delete related payments
             $sale->payments()->delete();
-            
+
             // Update trader balance
             $trader = $sale->trader;
             if ($trader) {
                 $trader->Balance -= $sale->TotalAmount;
                 $trader->save();
             }
-            
+
             // Then delete the sale itself
             $sale->delete();
-            
+
             DB::commit();
             return redirect()->route('sales.index')->with('success', 'تم حذف الفاتورة بنجاح');
 

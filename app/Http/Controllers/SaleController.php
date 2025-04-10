@@ -104,4 +104,39 @@ class SaleController extends Controller
         $sale = $this->sale->with(['trader', 'details.product'])->findOrFail($id);
         return Inertia::render('Sales/Show', ['sale' => $sale]);
     }
+
+    public function destroy($id)
+    {
+        $sale = Sale::with('details.product')->findOrFail($id);
+        
+        // Transaction to ensure data consistency
+        DB::beginTransaction();
+        try {
+            // Get all product details from the sale
+            $productDetails = $sale->details;
+            
+            // Update each product's quantity and cost
+            foreach ($productDetails as $detail) {
+                $product = Product::findOrFail($detail->ProductID);
+                
+                // Update quantity
+                $product->StockQuantity += $detail->Quantity;
+                
+                // Update cost using the product's updateCost method
+                $product->updateCost($detail->Quantity, $detail->UnitCost);
+                
+                $product->save();
+            }
+            
+            // Delete the sale and its details
+            $sale->details()->delete();
+            $sale->delete();
+            
+            DB::commit();
+            return redirect()->back()->with('success', 'تم حذف الفاتورة بنجاح وتم استعادة كميات المنتجات وتحديث أسعارها');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'حدث خطأ أثناء حذف الفاتورة: ' . $e->getMessage());
+        }
+    }
 }
