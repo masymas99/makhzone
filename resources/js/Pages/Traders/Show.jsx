@@ -26,7 +26,7 @@ export default function Show() {
     return (
         <div className="min-h-screen bg-gray-100 ">
             <Navbar />
-            <Head title={`تفاصيل التاجر - ${trader.TraderName}`} />
+            <Head title={`تفاصيل العميل - ${trader.TraderName}`} />
 
             <div className="container mx-auto px-4 py-8 mt-12">
                 <div className="flex justify-between items-center mb-6">
@@ -59,7 +59,7 @@ export default function Show() {
 
                 {/* Basic Information */}
                 <div className="bg-white rounded-lg shadow p-6 mb-8">
-                    <h2 className="text-xl font-bold mb-4">معلومات التاجر</h2>
+                    <h2 className="text-xl font-bold mb-4">معلومات العميل</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <div className="mb-4">

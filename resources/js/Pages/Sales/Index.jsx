@@ -73,7 +73,7 @@ export default function Index() {
                                         </p>
                                     </div>
                                     <div className="text-gray-700 text-base mb-2">
-                                        <p>التاجر: {sale.trader.TraderName}</p>
+                                        <p>العميل: {sale.trader.TraderName}</p>
                                         <p>الإجمالي: {sale.TotalAmount} ج.م</p>
                                         <p>المدفوع: {sale.PaidAmount} ج.م</p>
                                         <p style={{ color: sale.RemainingAmount > 0 ? 'red' : 'green' }}>

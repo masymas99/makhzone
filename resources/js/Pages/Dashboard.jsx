@@ -122,8 +122,8 @@ export default function Dashboard({
                             </div>
                             <div className="bg-gradient-to-br from-purple-500 to-purple-600 p-6 rounded-xl shadow-md text-white transform hover:scale-105 transition-all duration-300">
                                 <FaUsers className="text-3xl mb-3" />
-                                <h3 className="text-sm font-medium opacity-80">إجمالي التجار</h3>
-                                <p className="text-2xl font-bold">{totalTraders.toLocaleString('ar-EG')} تاجر</p>
+                                <h3 className="text-sm font-medium opacity-80">إجمالي العملاء</h3>
+                                <p className="text-2xl font-bold">{totalTraders.toLocaleString('ar-EG')} عميل</p>
                             </div>
                             <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-6 rounded-xl shadow-md text-white transform hover:scale-105 transition-all duration-300">
                                 <FaCoins className="text-3xl mb-3" />

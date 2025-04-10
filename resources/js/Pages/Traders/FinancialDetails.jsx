@@ -14,8 +14,8 @@ export default function FinancialDetails() {
             <div className="bg-white rounded-lg shadow p-6">
                 <div className="grid grid-cols-2 gap-6">
                     <div>
-                        <h3 className="text-lg font-semibold mb-2">معلومات التاجر</h3>
-                        <p><strong>اسم التاجر:</strong> {financial[0]?.trader?.TraderName}</p>
+                        <h3 className="text-lg font-semibold mb-2">معلومات العميل</h3>
+                        <p><strong>اسم العميل:</strong> {financial[0]?.trader?.TraderName}</p>
                         <p><strong>الرصيد الحالي:</strong> {financial[0]?.balance}</p>
                         <p><strong>المبيعات الإجمالية:</strong> {financial[0]?.total_sales}</p>
                         <p><strong>المدفوعات الإجمالية:</strong> {financial[0]?.total_payments}</p>

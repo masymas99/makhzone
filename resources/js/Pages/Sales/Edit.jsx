@@ -57,7 +57,7 @@ export default function Edit({ sale, traders }) {
                         <form onSubmit={handleSubmit}>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                                 <div>
-                                    <label className="block text-base font-semibold text-gray-800 mb-2">التاجر</label>
+                                    <label className="block text-base font-semibold text-gray-800 mb-2">العميل</label>
                                     <select
                                         name="trader_id"
                                         value={data.trader_id}
@@ -65,7 +65,7 @@ export default function Edit({ sale, traders }) {
                                         className="block w-full rounded-xl border-2 border-gray-300 bg-white text-gray-900 shadow-sm focus:border-indigo-600 focus:ring-indigo-600 py-3 px-4 text-base transition-all duration-200"
                                         required
                                     >
-                                        <option value="">اختر التاجر...</option>
+                                        <option value="">اختر العميل...</option>
                                         {traders?.map((trader) => (
                                             <option key={trader.TraderID} value={trader.TraderID}>
                                                 {trader.TraderName}

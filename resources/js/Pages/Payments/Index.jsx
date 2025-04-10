@@ -57,7 +57,7 @@ export default function PaymentsIndex() {
                                             المبلغ {sortField === 'amount' && (sortOrder === 'asc' ? '▲' : '▼')}
                                         </th>
                                         <th className="px-6 py-3">رقم الفاتورة</th>
-                                        <th className="px-6 py-3">التاجر</th>
+                                        <th className="px-6 py-3">العميل</th>
                                         <th className="px-6 py-3">الحالة</th>
                                     </tr>
                                 </thead>

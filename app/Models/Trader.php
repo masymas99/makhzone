@@ -97,9 +97,9 @@ class Trader extends Model
         $balance = $this->calculateTotals()['balance'];
 
         if ($balance > 0) {
-            return 'مستحق عليه'; // التاجر مدين لنا
+            return 'مستحق عليه'; // العميل مدين لنا
         } elseif ($balance < 0) {
-            return 'مستحق له'; // نحن مدينون للتاجر
+            return 'مستحق له'; // نحن مدينون للعميل
         }
         return 'متوازن';
     }

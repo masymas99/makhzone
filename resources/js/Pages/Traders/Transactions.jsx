@@ -8,14 +8,14 @@ export default function Transactions() {
     const [activeTab, setActiveTab] = useState('all');
 
     const handleDelete = (id) => {
-        if (confirm('هل أنت متأكد من حذف هذا التاجر؟ سيتم حذف جميع معاملاته وفواتيره.')) {
+        if (confirm('هل أنت متأكد من حذف هذا العميل؟ سيتم حذف جميع معاملاته وفواتيره.')) {
             router.delete(route('traders.destroy', id), {
                 onSuccess: () => {
-                    alert('تم حذف التاجر بنجاح');
+                    alert('تم حذف العميل بنجاح');
                 },
                 onError: (errors) => {
                     console.error('Error during delete:', errors);
-                    alert('حدث خطأ أثناء حذف التاجر: ' + Object.values(errors).join(', '));
+                    alert('حدث خطأ أثناء حذف العميل: ' + Object.values(errors).join(', '));
                 },
             });
         }
@@ -36,12 +36,12 @@ export default function Transactions() {
 
     return (
         <div className="p-6">
-            <Head title={`معاملات التاجر ${trader.TraderName}`} />
+            <Head title={`معاملات العميل ${trader.TraderName}`} />
             <Navbar />
 
             <div className="bg-white rounded-lg shadow p-6">
                 <div className="flex justify-between items-center mb-6">
-                    <h1 className="text-2xl font-bold">معاملات التاجر {trader.TraderName}</h1>
+                    <h1 className="text-2xl font-bold">معاملات العميل {trader.TraderName}</h1>
                     <div className="flex gap-2">
                         <Link href={route('traders.index')} 
                             className="p-2 hover:bg-gray-100 rounded-full text-gray-700 hover:text-gray-900"
@@ -58,7 +58,7 @@ export default function Transactions() {
                         <button
                             onClick={() => handleDelete(trader.TraderID)}
                             className="p-2 hover:bg-red-100 rounded-full text-red-500 hover:text-red-700"
-                            title="حذف التاجر"
+                            title="حذف العميل"
                         >
                             <FaTrash />
                         </button>

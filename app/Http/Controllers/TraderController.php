@@ -67,7 +67,7 @@ class TraderController extends Controller
         $validated['IsActive'] = $validated['IsActive'] ?? true;
         
         $trader = Trader::create($validated);
-        return redirect()->route('traders.index')->with('success', 'تمت إضافة التاجر بنجاح');
+        return redirect()->route('traders.index')->with('success', 'تمت إضافة العميل بنجاح');
     }
 
     public function show($id)
@@ -130,7 +130,7 @@ class TraderController extends Controller
         ]);
 
         $trader->update($validated);
-        return redirect()->route('traders.index')->with('success', 'تم تحديث بيانات التاجر بنجاح');
+        return redirect()->route('traders.index')->with('success', 'تم تحديث بيانات العميل بنجاح');
     }
 
     public function destroy($id)
@@ -154,11 +154,11 @@ class TraderController extends Controller
             $trader->delete();
             
             DB::commit();
-            return redirect()->route('traders.index')->with('success', 'تم حذف التاجر بنجاح');
+            return redirect()->route('traders.index')->with('success', 'تم حذف العميل بنجاح');
             
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'حدث خطأ أثناء حذف التاجر: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'حدث خطأ أثناء حذف العميل: ' . $e->getMessage());
         }
     }
 

@@ -34,14 +34,14 @@ export default function Index() {
 
     return (
         <div className="min-h-screen bg-gray-100">
-            <Head title="التجار" />
+            <Head title="العملاء" />
             <Navbar />
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 pt-20">
                 {/* Header and Actions */}
                 <div className="flex items-center justify-between mb-8">
                     <div className="flex items-center space-x-3 space-x-reverse">
                         <HiOutlineUserGroup className="text-3xl text-indigo-600" />
-                        <h1 className="text-3xl font-bold text-gray-900">قائمة التجار</h1>
+                        <h1 className="text-3xl font-bold text-gray-900">قائمة العملاء</h1>
                     </div>
                     <div className="flex items-center space-x-4 space-x-reverse">
                         <button
@@ -56,7 +56,7 @@ export default function Index() {
                             className="flex items-center px-5 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-full shadow-md hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-indigo-200"
                         >
                             <FaPlus className="mr-2" />
-                            <span>إضافة تاجر</span>
+                            <span>إضافة عميل</span>
                         </Link>
                     </div>
                 </div>
@@ -68,7 +68,7 @@ export default function Index() {
                             type="text"
                             value={search}
                             onChange={handleSearch}
-                            placeholder="بحث عن تاجر..."
+                            placeholder="بحث عن عميل..."
                             className="w-full py-3 px-12 text-right bg-white border-2 border-gray-300 rounded-xl shadow-sm focus:border-indigo-600 focus:ring-indigo-600 text-gray-900 text-base transition-all duration-200"
                         />
                         <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -176,7 +176,7 @@ export default function Index() {
                                     ×
                                 </button>
                             </div>
-                            <p className="text-gray-600 mb-6 text-center">هل أنت متأكد من حذف هذا التاجر؟</p>
+                            <p className="text-gray-600 mb-6 text-center">هل أنت متأكد من حذف هذا العميل؟</p>
                             <div className="flex justify-end space-x-4">
                                 <button
                                     onClick={() => setConfirmDelete(null)}

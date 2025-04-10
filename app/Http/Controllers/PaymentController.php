@@ -28,7 +28,7 @@ class PaymentController extends Controller
         $traderId = $request->query('trader_id');
         
         if (!$traderId) {
-            return redirect()->back()->with('error', 'يجب تحديد التاجر');
+            return redirect()->back()->with('error', 'يجب تحديد العميل');
         }
 
         $trader = Trader::findOrFail($traderId);

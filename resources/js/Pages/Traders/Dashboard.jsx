@@ -91,7 +91,7 @@ export default function Dashboard() {
                     <div>
                         <h1 className="text-2xl font-bold">لوحة التحكم</h1>
                         <div className="flex items-center gap-4">
-                            <p className="text-gray-600">التاجر: {trader.TraderName}</p>
+                            <p className="text-gray-600">العميل: {trader.TraderName}</p>
                             <Link
                                 href={`/traders/${trader.TraderID}`}
                                 className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"

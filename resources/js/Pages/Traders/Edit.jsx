@@ -18,17 +18,17 @@ const Edit = ({ trader }) => {
 
   return (
     <>
-      <Head title="تعديل التاجر" />
+      <Head title="تعديل العميل" />
       <Navbar />
       <div className="py-12">
         <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
           {showEditModal && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
               <div className="bg-white p-6 rounded-lg w-96">
-                <h3 className="text-lg font-semibold mb-4">تعديل بيانات التاجر</h3>
+                <h3 className="text-lg font-semibold mb-4">تعديل بيانات العميل</h3>
                 <form onSubmit={handleSubmit}>
                   <div className="mb-4">
-                    <label className="block mb-2">اسم التاجر</label>
+                    <label className="block mb-2">اسم العميل</label>
                     <input
                       type="text"
                       value={formData.TraderName}

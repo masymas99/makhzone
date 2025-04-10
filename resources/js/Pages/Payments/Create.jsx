@@ -45,7 +45,7 @@ export default function Create() {
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">التاجر</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">العميل</label>
                             <div className="bg-gray-50 p-3 rounded">
                                 <p className="font-medium">{trader.TraderName}</p>
                                 <p className="text-sm text-gray-600">{trader.Phone}</p>

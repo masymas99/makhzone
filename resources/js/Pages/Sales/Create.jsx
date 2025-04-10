@@ -115,7 +115,7 @@ export default function Create() {
     
     // Check if trader is selected
     if (!data.TraderID) {
-      setDialog({ isOpen: true, message: 'يجب اختيار تاجر', type: 'error' });
+      setDialog({ isOpen: true, message: 'يجب اختيار عميل', type: 'error' });
       return;
     }
 
@@ -187,13 +187,13 @@ export default function Create() {
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Trader selection */}
             <div className="relative">
-              <label className="block text-base font-semibold text-gray-800 mb-2">تاجر</label>
+              <label className="block text-base font-semibold text-gray-800 mb-2">عميل</label>
               <select
                 value={data.TraderID}
                 onChange={(e) => setData('TraderID', e.target.value)}
                 className="w-full border-2 border-gray-300 rounded-lg p-3 bg-gray-50 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm"
               >
-                <option value="">اختر تاجر</option>
+                <option value="">اختر عميل</option>
                 {traders.map((trader) => (
                   <option key={trader.TraderID} value={trader.TraderID}>
                     {trader.TraderName}

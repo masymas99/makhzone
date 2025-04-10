@@ -96,7 +96,7 @@ class SalesController extends Controller
                 'RemainingAmount' => $remainingAmount,
             ]);
 
-            // تحديث حساب التاجر
+            // تحديث حساب العميل
             $trader = Trader::find($request->TraderID);
             $trader->Balance += $totalAmount;
             $trader->TotalSales += $totalAmount;

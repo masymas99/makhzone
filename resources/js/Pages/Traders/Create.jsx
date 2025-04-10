@@ -17,16 +17,16 @@ const Create = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <Head title="إضافة تاجر جديد" />
+      <Head title="إضافة عميل جديد" />
       <Navbar />
       <div className="pt-20 pb-12 px-6 max-w-2xl mx-auto">
         <div className="bg-white rounded-lg shadow-lg p-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-8 flex items-center">
-            <span>إضافة تاجر جديد</span>
+            <span>إضافة عميل جديد</span>
           </h1>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block mb-2 text-sm font-medium text-gray-700">اسم التاجر</label>
+              <label className="block mb-2 text-sm font-medium text-gray-700">اسم العميل</label>
               <input
                 type="text"
                 value={data.TraderName}
