@@ -27,9 +27,11 @@ export default function PurchasesCreate({ products }) {
     };
 
     const removeProduct = (index) => {
-        const newProducts = [...data.products];
-        newProducts.splice(index, 1);
-        setData('products', newProducts);
+        if (data.products.length > 1) {
+            const newProducts = [...data.products];
+            newProducts.splice(index, 1);
+            setData('products', newProducts);
+        }
     };
 
     const handleProductChange = (index, productId) => {
