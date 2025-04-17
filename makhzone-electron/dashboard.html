@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة التحكم</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>body { font-family: 'Cairo', sans-serif; }</style>
+</head>
+<body class="bg-gray-100">
+  <!-- Header -->
+  <div class="w-full bg-white shadow p-4 flex justify-between items-center">
+    <h1 class="text-xl">مرحبا، <span id="userName"></span></h1>
+    <button id="logout" class="bg-red-500 px-3 py-1 text-white rounded">تسجيل الخروج</button>
+  </div>
+  <!-- Layout -->
+  <div class="flex h-[calc(100vh-64px)]">
+    <!-- Sidebar -->
+    <nav class="w-1/4 bg-white p-4 border-r">
+      <ul>
+        <li><a href="#" data-page="sales" class="block py-2 hover:bg-gray-100">الفواتير</a></li>
+        <li><a href="#" data-page="products" class="block py-2 hover:bg-gray-100">المنتجات</a></li>
+        <li><a href="#" data-page="traders" class="block py-2 hover:bg-gray-100">التجار</a></li>
+      </ul>
+    </nav>
+    <!-- Content -->
+    <main id="content" class="flex-1 p-4 overflow-auto"></main>
+  </div>
+  <script>
+    // Auth guard
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    if (!user) window.location.href = 'index.html';
+    document.getElementById('userName').innerText = user.name;
+    document.getElementById('logout').addEventListener('click', () => {
+      localStorage.removeItem('user');
+      window.location.href = 'index.html';
+    });
+    // Load pages
+    async function loadSales() {
+      const res = await fetch('http://localhost:3001/api/sales');
+      const data = await res.json();
+      let html = '<h2 class="text-2xl mb-4">قائمة الفواتير</h2>';
+      if (!res.ok) html += `<p class="text-red-600">${data.error}</p>`;
+      else if (data.length === 0) html += '<p>لا توجد فواتير.</p>';
+      else {
+        html += '<table class="min-w-full bg-white border">';
+        html += '<thead><tr><th class="border px-2 py-1">ID</th><th class="border px-2 py-1">التاجر</th><th class="border px-2 py-1">التاريخ</th><th class="border px-2 py-1">الإجمالي</th></tr></thead>';
+        html += '<tbody>';
+        data.forEach(s => {
+          html += `<tr><td class="border px-2 py-1">${s.SaleID}</td><td class="border px-2 py-1">${s.trader?.TraderName || '-'}</td><td class="border px-2 py-1">${s.SaleDate}</td><td class="border px-2 py-1">${s.TotalAmount}</td></tr>`;
+        });
+        html += '</tbody></table>';
+      }
+      document.getElementById('content').innerHTML = html;
+    }
+    function loadPlaceholder(title) {
+      document.getElementById('content').innerHTML = `<h2 class="text-2xl mb-4">${title}</h2><p>قيد التطوير...</p>`;
+    }
+    document.querySelectorAll('nav a').forEach(a => a.addEventListener('click', e => {
+      e.preventDefault();
+      const page = a.getAttribute('data-page');
+      if (page === 'sales') loadSales();
+      else if (page === 'products') loadPlaceholder('المنتجات');
+      else if (page === 'traders') loadPlaceholder('التجار');
+    }));
+    // Load default
+    loadSales();
+  </script>
+</body>
+</html>
