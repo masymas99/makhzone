@@ -2,8 +2,10 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
 const express = require('express');
+const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const backend = express();
+backend.use(cors());
 const PORT = 3001;
 
 // إعداد قاعدة البيانات SQLite
@@ -335,10 +337,249 @@ backend.get('/api/traders/financials', (req, res) => {
     res.json(rows);
   });
 });
+
+// Routes للمشتريات
+backend.get('/api/purchases', (req, res) => {
+  db.all(`
+    SELECT p.*,
+    pd.Quantity AS detail_quantity,
+    pd.UnitCost AS detail_unit_cost,
+    pr.ProductName,
+    s.Name AS SupplierName
+    FROM purchases p
+    LEFT JOIN purchase_details pd ON p.PurchaseID = pd.PurchaseID
+    LEFT JOIN products pr ON p.ProductID = pr.ProductID
+    LEFT JOIN suppliers s ON p.SupplierName = s.Name
+  `, (err, rows) => {
+    if (err) {
+      console.error('خطأ في استعلام المشتريات:', err);
+      return res.status(500).json({ error: 'خطأ في استرجاع البيانات' });
+    }
+    res.json(rows);
+  });
+});
+
+backend.post('/api/purchases', (req, res) => {
+  const purchase = req.body;
+  if (!purchase.ProductID || !purchase.Quantity || !purchase.UnitCost || !purchase.SupplierName) {
+    return res.status(400).json({ error: 'البيانات الأساسية للمشتريات مطلوبة' });
+  }
+
+  db.run(
+    `INSERT INTO purchases (
+      ProductID,
+      Quantity,
+      UnitCost,
+      SupplierName,
+      TraderID,
+      created_at,
+      updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    [
+      purchase.ProductID,
+      purchase.Quantity,
+      purchase.UnitCost,
+      purchase.SupplierName,
+      purchase.TraderID || null,
+      new Date().toISOString(),
+      new Date().toISOString()
+    ],
+    function(err) {
+      if (err) {
+        console.error('خطأ في قاعدة البيانات:', err);
+        return res.status(500).json({ error: 'فشل في تسجيل المشتريات' });
+      }
+      res.json({
+        id: this.lastID,
+        message: 'تم تسجيل المشتريات بنجاح'
+      });
+    }
+  );
+});
+
+// Routes للمصروفات
+backend.get('/api/expenses', (req, res) => {
+  const { startDate, endDate } = req.query;
+  let query = 'SELECT * FROM expenses';
+  const params = [];
+
+  if (startDate && endDate) {
+    query += ' WHERE ExpenseDate BETWEEN ? AND ?';
+    params.push(startDate, endDate);
+  }
+
+  db.all(query, params, (err, rows) => {
+    if (err) {
+      console.error('خطأ في استعلام المصروفات:', err);
+      return res.status(500).json({ error: 'خطأ في استرجاع البيانات' });
+    }
+    res.json(rows);
+  });
+});
+
+backend.post('/api/expenses', (req, res) => {
+  const expense = req.body;
+  db.run(
+    'INSERT INTO expenses (ExpenseDate, Description, Amount) VALUES (?, ?, ?)',
+    [new Date().toISOString(), expense.description, expense.amount],
+    function(err) {
+      err ? res.status(500).send() : res.json({ id: this.lastID });
+    }
+  );
+});
+
+// Routes للدفعات
+backend.get('/api/payments', (req, res) => {
+  db.all('SELECT * FROM payments', (err, rows) => res.json(rows));
+});
+
+backend.get('/api/payments/:id', (req, res) => {
+  db.get('SELECT * FROM payments WHERE PaymentID = ?', [req.params.id], (err, row) => {
+    row ? res.json(row) : res.status(404).json({ error: 'غير موجود' });
+  });
+});
+
 backend.get('/api/traders/:id/financials', (req, res) => {
   db.all('SELECT * FROM trader_financials WHERE trader_id = ?', [req.params.id], (err, rows) => {
     if (err) return res.status(500).json({ error: 'خطأ في استرجاع السجلات المالية للتاجر' });
     res.json(rows);
+  });
+});
+
+// Routes للدفعات
+backend.get('/api/payments/:id', (req, res) => {
+  db.get('SELECT * FROM payments WHERE PaymentID = ?', [req.params.id], (err, row) => row ? res.json(row) : res.status(404).json({ error: 'غير موجود' }));
+});
+
+// CRUD Sales
+backend.get('/api/sales/:id', (req, res) => {
+  db.get('SELECT * FROM sales WHERE SaleID = ?', [req.params.id], (err, row) => {
+    if (err) return res.status(500).json({ error: 'خطأ في استرجاع الفاتورة' });
+    if (!row) return res.status(404).json({ error: 'الفاتورة غير موجودة' });
+    res.json(row);
+  });
+});
+backend.put('/api/sales/:id', (req, res) => {
+  const { TraderID, PaidAmount, Status } = req.body;
+  const now = new Date().toISOString();
+  db.run(
+    'UPDATE sales SET TraderID = ?, PaidAmount = ?, Status = ?, updated_at = ? WHERE SaleID = ?',
+    [TraderID, PaidAmount, Status, now, req.params.id],
+    function(err) {
+      if (err) return res.status(500).json({ error: 'خطأ في تحديث الفاتورة' });
+      res.json({ changes: this.changes });
+    }
+  );
+});
+backend.delete('/api/sales/:id', (req, res) => {
+  db.run('DELETE FROM sales WHERE SaleID = ?', [req.params.id], function(err) {
+    if (err) return res.status(500).json({ error: 'خطأ في حذف الفاتورة' });
+    res.json({ deleted: this.changes });
+  });
+});
+
+// CRUD Purchases
+backend.put('/api/purchases/:id', (req, res) => {
+  const p = req.body;
+  const now = new Date().toISOString();
+  db.run(
+    'UPDATE purchases SET ProductID = ?, Quantity = ?, UnitCost = ?, SupplierName = ?, TraderID = ?, updated_at = ? WHERE PurchaseID = ?',
+    [p.ProductID, p.Quantity, p.UnitCost, p.SupplierName, p.TraderID, now, req.params.id],
+    function(err) {
+      if (err) return res.status(500).json({ error: 'خطأ في تحديث المشتريات' });
+      res.json({ changes: this.changes });
+    }
+  );
+});
+backend.delete('/api/purchases/:id', (req, res) => {
+  db.run('DELETE FROM purchases WHERE PurchaseID = ?', [req.params.id], function(err) {
+    if (err) return res.status(500).json({ error: 'خطأ في حذف المشتريات' });
+    res.json({ deleted: this.changes });
+  });
+});
+
+// CRUD Expenses
+backend.put('/api/expenses/:id', (req, res) => {
+  const { description, amount, ExpenseDate } = req.body;
+  const now = new Date().toISOString();
+  db.run(
+    'UPDATE expenses SET Description = ?, Amount = ?, ExpenseDate = ?, updated_at = ? WHERE ExpenseID = ?',
+    [description, amount, ExpenseDate, now, req.params.id],
+    function(err) {
+      if (err) return res.status(500).json({ error: 'خطأ في تحديث المصروف' });
+      res.json({ changes: this.changes });
+    }
+  );
+});
+backend.delete('/api/expenses/:id', (req, res) => {
+  db.run('DELETE FROM expenses WHERE ExpenseID = ?', [req.params.id], function(err) {
+    if (err) return res.status(500).json({ error: 'خطأ في حذف المصروف' });
+    res.json({ deleted: this.changes });
+  });
+});
+
+// CRUD Payments
+backend.post('/api/payments', (req, res) => {
+  const { TraderID, Amount, PaymentDate, SaleID } = req.body;
+  const now = new Date().toISOString();
+  db.run(
+    'INSERT INTO payments (TraderID, Amount, PaymentDate, SaleID, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
+    [TraderID, Amount, PaymentDate || now, SaleID || null, now, now],
+    function(err) {
+      if (err) return res.status(500).json({ error: 'خطأ في إنشاء الدفعة' });
+      res.json({ id: this.lastID });
+    }
+  );
+});
+backend.put('/api/payments/:id', (req, res) => {
+  const { Amount, PaymentDate, SaleID } = req.body;
+  const now = new Date().toISOString();
+  db.run(
+    'UPDATE payments SET Amount = ?, PaymentDate = ?, SaleID = ?, updated_at = ? WHERE PaymentID = ?',
+    [Amount, PaymentDate, SaleID, now, req.params.id],
+    function(err) {
+      if (err) return res.status(500).json({ error: 'خطأ في تحديث الدفعة' });
+      res.json({ changes: this.changes });
+    }
+  );
+});
+backend.delete('/api/payments/:id', (req, res) => {
+  db.run('DELETE FROM payments WHERE PaymentID = ?', [req.params.id], function(err) {
+    if (err) return res.status(500).json({ error: 'خطأ في حذف الدفعة' });
+    res.json({ deleted: this.changes });
+  });
+});
+
+// CRUD Traders
+backend.post('/api/traders', (req, res) => {
+  const { TraderName, Phone, Address, IsActive } = req.body;
+  if (!TraderName) return res.status(400).json({ error: 'اسم التاجر مطلوب' });
+  const now = new Date().toISOString();
+  db.run(
+    'INSERT INTO traders (TraderName, Phone, Address, IsActive, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
+    [TraderName, Phone, Address, IsActive ? 1 : 0, now, now],
+    function(err) {
+      if (err) return res.status(500).json({ error: 'خطأ في إنشاء التاجر' });
+      res.json({ TraderID: this.lastID });
+    }
+  );
+});
+backend.put('/api/traders/:id', (req, res) => {
+  const { TraderName, Phone, Address, IsActive } = req.body;
+  const now = new Date().toISOString();
+  db.run(
+    'UPDATE traders SET TraderName = ?, Phone = ?, Address = ?, IsActive = ?, updated_at = ? WHERE TraderID = ?',
+    [TraderName, Phone, Address, IsActive ? 1 : 0, now, req.params.id],
+    function(err) {
+      if (err) return res.status(500).json({ error: 'خطأ في تحديث التاجر' });
+      res.json({ changes: this.changes });
+    }
+  );
+});
+backend.delete('/api/traders/:id', (req, res) => {
+  db.run('DELETE FROM traders WHERE TraderID = ?', [req.params.id], function(err) {
+    if (err) return res.status(500).json({ error: 'خطأ في حذف التاجر' });
+    res.json({ deleted: this.changes });
   });
 });
 
