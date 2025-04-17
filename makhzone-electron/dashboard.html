@@ -111,23 +111,50 @@
           // Get all sales for this trader
           const salesRes = await fetch(`http://localhost:3001/api/sales?trader=${t.TraderID}`);
           const sales = await salesRes.json();
-          
-          // Calculate total paid amount
+
+          // Calculate total paid amount from sales
           const totalPaidAmount = sales.reduce((total, sale) => total + sale.PaidAmount, 0);
-          
-          // Calculate balance
-          const balance = totalPaidAmount - t.TotalSales;
+
+          // Get trader payments
+          const paymentsRes = await fetch(`http://localhost:3001/api/payments?trader=${t.TraderID}`);
+          const payments = await paymentsRes.json();
+          const totalPayments = payments.reduce((total, payment) => total + payment.Amount, 0);
+
+          // Calculate balance according to new formula: (payments + sales payments) - total sales
+          const balance = (totalPayments + totalPaidAmount) - t.TotalSales;
           const balanceClass = balance < 0 ? 'text-red-600' : 'text-green-600';
           const balanceSign = balance < 0 ? '-' : '+';
-          const balanceValue = Math.abs(balance);
-          
+          const balanceValue = Math.abs(balance).toFixed(2);
+
+          // Update trader's balance in the database
+          try {
+            await fetch(`http://localhost:3001/api/traders/${t.TraderID}/balance`, {
+              method: 'PUT',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({ balance })
+            });
+          } catch (error) {
+            console.error('Error updating trader balance:', error);
+          }
+
+          // Update trader's balance in the database
+          try {
+            await fetch(`http://localhost:3001/api/traders/${t.TraderID}/balance`, {
+              method: 'PUT',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({ balance })
+            });
+          } catch (error) {
+            console.error('Error updating trader balance:', error);
+          }
+
           html += `<tr>
             <td class="border px-2 py-1">${t.TraderID}</td>
             <td class="border px-2 py-1">${t.TraderName}</td>
             <td class="border px-2 py-1 ${balanceClass}">${balanceSign}${balanceValue}</td>
             <td class="border px-2 py-1">
               <button data-id="${t.TraderID}" class="view-trader bg-blue-500 text-white px-2 py-1 rounded mr-1">عرض</button>
-              <button data-id="${t.TraderID}" class="manual-payment bg-purple-500 text-white px-2 py-1 rounded mr-1">إضافة دفعة</button>
+              <button data-id="${t.TraderID}" class="manual-payment bg-blue-500 text-white px-2 py-1 rounded mr-1">إضافة دفعة</button>
               <button data-id="${t.TraderID}" class="edit-trader bg-yellow-400 px-2 py-1 rounded mr-1">تعديل</button>
               <button data-id="${t.TraderID}" class="delete-trader bg-red-500 text-white px-2 py-1 rounded">حذف</button>
             </td>
@@ -274,24 +301,72 @@
     async function loadExpenses() {
       const res = await fetch('http://localhost:3001/api/expenses');
       const data = await res.json();
-      let html = '<h2 class="text-2xl mb-4">المصروفات</h2>';
+      let html = '<div class="flex justify-between items-center mb-4">'
+        + '<h2 class="text-2xl">المصروفات</h2>'
+        + '<button id="addExpenseBtn" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">+ إضافة مصروف</button>'
+      + '</div>';
       html += '<table class="min-w-full bg-white border"><thead><tr><th class="border px-2 py-1">ID</th><th class="border px-2 py-1">الوصف</th><th class="border px-2 py-1">المبلغ</th><th class="border px-2 py-1">التاريخ</th></tr></thead><tbody>';
       if (res.ok && data.length) {
         data.forEach(e => {
-          html += `<tr><td class="border px-2 py-1">${e.id}</td><td class="border px-2 py-1">${e.description}</td><td class="border px-2 py-1">${e.Amount}</td><td class="border px-2 py-1">${e.ExpenseDate}</td></tr>`;
+          html += `<tr><td class="border px-2 py-1">${e.ExpenseID}</td><td class="border px-2 py-1">${e.Description}</td><td class="border px-2 py-1">${e.Amount}</td><td class="border px-2 py-1">${e.ExpenseDate}</td></tr>`;
         });
       } else html += '<tr><td colspan="4" class="text-center py-2">لا توجد بيانات</td></tr>';
       html += '</tbody></table>';
       document.getElementById('content').innerHTML = html;
+      document.getElementById('addExpenseBtn').addEventListener('click', showAddExpenseForm);
     }
+    function showAddExpenseForm() {
+      const html = `
+        <div class="max-w-md mx-auto bg-white p-6 rounded shadow">
+          <h3 class="text-xl mb-4">إضافة مصروف</h3>
+          <div id="expenseMsg"></div>
+          <form id="expenseForm" class="space-y-4">
+            <input type="date" id="expenseDate" class="w-full border px-3 py-2 rounded" required />
+            <input type="text" id="expenseDesc" placeholder="الوصف" class="w-full border px-3 py-2 rounded" required />
+            <input type="number" step="0.01" id="expenseAmount" placeholder="المبلغ" class="w-full border px-3 py-2 rounded" required />
+            <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded">حفظ</button>
+          </form>
+        </div>
+      `;
+      document.getElementById('content').innerHTML = html;
+
+      document.getElementById('expenseForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const payload = {
+          ExpenseDate: document.getElementById('expenseDate').value,
+          Description: document.getElementById('expenseDesc').value,
+          Amount: +document.getElementById('expenseAmount').value
+        };
+
+        try {
+          const res = await fetch('http://localhost:3001/api/expenses', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+          });
+          const data = await res.json();
+
+          if (res.ok) {
+            loadExpenses();
+          } else {
+            document.getElementById('expenseMsg').innerHTML = `<p class="text-red-600">${data.error}</p>`;
+          }
+        } catch (error) {
+          document.getElementById('expenseMsg').innerHTML = '<p class="text-red-600">خطأ في الاتصال</p>';
+        }
+      });
+    }
+
     async function loadPayments() {
+
       const res = await fetch('http://localhost:3001/api/payments');
       const data = await res.json();
       let html = '<h2 class="text-2xl mb-4">الدفعات</h2>';
-      html += '<table class="min-w-full bg-white border"><thead><tr><th class="border px-2 py-1">ID</th><th class="border px-2 py-1">ID التاجر</th><th class="border px-2 py-1">المبلغ</th><th class="border px-2 py-1">التاريخ</th></tr></thead><tbody>';
+      html += '<table class="min-w-full bg-white border"><thead><tr><th class="border px-2 py-1">ID</th><th class="border px-2 py-1">ID التاجر</th><th class="border px-2 py-1">اسم التاجر</th><th class="border px-2 py-1">المبلغ</th><th class="border px-2 py-1">التاريخ</th></tr></thead><tbody>';
       if (res.ok && data.length) {
         data.forEach(p => {
-          html += `<tr><td class="border px-2 py-1">${p.PaymentID}</td><td class="border px-2 py-1">${p.TraderID}</td><td class="border px-2 py-1">${p.Amount}</td><td class="border px-2 py-1">${p.PaymentDate}</td></tr>`;
+          console.log(p);
+          html += `<tr><td class="border px-2 py-1">${p.PaymentID}</td><td class="border px-2 py-1">${p.TraderID}</td><td class="border px-2 py-1">${p.TraderName}</td><td class="border px-2 py-1">${p.Amount}</td><td class="border px-2 py-1">${p.PaymentDate}</td></tr>`;
         });
       } else html += '<tr><td colspan="4" class="text-center py-2">لا توجد بيانات</td></tr>';
       html += '</tbody></table>';
@@ -458,21 +533,26 @@
 
       // Calculate total paid amount from all invoices
       const totalPaidAmount = sales.reduce((total, sale) => total + sale.PaidAmount, 0);
-      
-      // Calculate balance
-      const balance = totalPaidAmount - trader.TotalSales;
+
+      // Fetch all payments (sale + manual) for this trader
+      const paymentsRes = await fetch(`http://localhost:3001/api/payments/trader/${id}`);
+      const payments = await paymentsRes.json();
+      const totalPayments = payments.reduce((total, p) => total + p.Amount, 0);
+
+      // Calculate balance using same formula as traders list
+      const balance = (totalPayments + totalPaidAmount) - trader.TotalSales;
       const balanceClass = balance < 0 ? 'text-red-600' : 'text-green-600';
       const balanceSign = balance < 0 ? '-' : '+';
-      const balanceValue = Math.abs(balance);
+      const balanceValue = Math.abs(balance).toFixed(2);
 
-      let html = `<div class="max-w-md mx-auto bg-white p-6 rounded shadow"><h3 class="text-xl mb-4">تفاصيل التاجر</h3><ul class="list-disc list-inside space-y-1">`;
+      let html = `<div class="max-w-xl mx-auto bg-white p-6 rounded shadow"><h3 class="text-xl mb-4">تفاصيل التاجر</h3><ul class="list-disc list-inside space-y-1">`;
       html += `<li>ID: ${trader.TraderID}</li>`;
       html += `<li>الاسم: ${trader.TraderName}</li>`;
       html += `<li>الهاتف: ${trader.Phone}</li>`;
       html += `<li>العنوان: ${trader.Address}</li>`;
       html += `<li class="${balanceClass}">الرصيد: ${balanceSign}${balanceValue}</li>`;
       html += `<li>إجمالي المبيعات: ${trader.TotalSales}</li>`;
-      html += `<li>إجمالي الدفعات: ${totalPaidAmount}</li>`;
+      html += `<li>إجمالي الدفعات: ${(totalPayments + totalPaidAmount).toFixed(2)}</li>`;
       html += `<li>نشط: ${trader.IsActive ? 'نعم' : 'لا'}</li>`;
       html += `</ul>`;
 

@@ -446,6 +446,56 @@ backend.delete('/api/products/:id', (req, res) => {
   });
 });
 
+// نقاط نهاية المصروفات
+backend.get('/api/expenses', (req, res) => {
+  db.all('SELECT * FROM expenses', [], (err, rows) => {
+    if (err) return res.status(500).json({ error: 'خطأ في استرجاع المصروفات' });
+    res.json(rows);
+  });
+});
+
+backend.get('/api/expenses/:id', (req, res) => {
+  db.get('SELECT * FROM expenses WHERE ExpenseID = ?', [req.params.id], (err, row) => {
+    if (err) return res.status(500).json({ error: 'خطأ في استرجاع المصروف' });
+    if (!row) return res.status(404).json({ error: 'المصروف غير موجود' });
+    res.json(row);
+  });
+});
+
+backend.post('/api/expenses', (req, res) => {
+  const { ExpenseDate, Description, Amount } = req.body;
+  if (!ExpenseDate || !Description || !Amount) return res.status(400).json({ error: 'جميع الحقول مطلوبة' });
+  const now = new Date().toISOString();
+  db.run(
+    'INSERT INTO expenses (ExpenseDate, Description, Amount, created_at, updated_at) VALUES (?, ?, ?, ?, ?)',
+    [ExpenseDate, Description, Amount, now, now],
+    function(err) {
+      if (err) return res.status(500).json({ error: 'خطأ في إنشاء المصروف' });
+      res.json({ ExpenseID: this.lastID });
+    }
+  );
+});
+
+backend.put('/api/expenses/:id', (req, res) => {
+  const { ExpenseDate, Description, Amount } = req.body;
+  const now = new Date().toISOString();
+  db.run(
+    'UPDATE expenses SET ExpenseDate = ?, Description = ?, Amount = ?, updated_at = ? WHERE ExpenseID = ?',
+    [ExpenseDate, Description, Amount, now, req.params.id],
+    function(err) {
+      if (err) return res.status(500).json({ error: 'خطأ في تحديث المصروف' });
+      res.json({ changes: this.changes });
+    }
+  );
+});
+
+backend.delete('/api/expenses/:id', (req, res) => {
+  db.run('DELETE FROM expenses WHERE ExpenseID = ?', [req.params.id], function(err) {
+    if (err) return res.status(500).json({ error: 'خطأ في حذف المصروف' });
+    res.json({ deleted: this.changes });
+  });
+});
+
 // Traders endpoints
 backend.get('/api/traders', (req, res) => {
   db.all('SELECT * FROM traders', [], (err, rows) => {
@@ -642,6 +692,14 @@ backend.get('/api/purchases/:id', (req, res) => {
         res.json({ ...purchase, details });
       }
     );
+  });
+});
+
+// Get all expenses
+backend.get('/api/expenses', (req, res) => {
+  db.all('SELECT * FROM expenses ORDER BY ExpenseDate DESC', [], (err, rows) => {
+    if (err) return res.status(500).json({ error: 'خطأ في جلب بيانات المصروفات' });
+    res.json(rows);
   });
 });
 
@@ -869,7 +927,10 @@ backend.post('/api/manual-payments', (req, res) => {
 // Get all payments
 backend.get('/api/payments', (req, res) => {
   db.all(
-    'SELECT * FROM payments ORDER BY PaymentDate DESC',
+    `SELECT p.PaymentID, p.TraderID, t.TraderName, p.SaleID, p.PaymentDate, p.Amount, p.created_at, p.updated_at
+     FROM payments p
+     LEFT JOIN traders t ON p.TraderID = t.TraderID
+     ORDER BY p.PaymentDate DESC`,
     [],
     (err, rows) => {
       if (err) return res.status(500).json({ error: 'خطأ في استرجاع الدفعات' });

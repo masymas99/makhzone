@@ -97,15 +97,35 @@ async function loadPurchases() {
 async function loadExpenses() {
   const res = await fetch('http://localhost:3001/api/expenses');
   const data = await res.json();
-  let html = '<h2 class="text-2xl mb-4">المصروفات</h2>';
-  html += '<table class="min-w-full bg-white border"><thead><tr><th class="border px-2 py-1">ID</th><th class="border px-2 py-1">الوصف</th><th class="border px-2 py-1">المبلغ</th><th class="border px-2 py-1">التاريخ</th></tr></thead><tbody>';
+  let html = '<div class="flex justify-between items-center mb-4">'
+    + '<h2 class="text-2xl">المصروفات</h2>'
+    + '<button id="addExpenseBtn" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">+ إضافة مصروف</button>'
+  + '</div>';
+  html += '<table class="min-w-full bg-white border"><thead><tr><th class="border px-2 py-1">ID</th><th class="border px-2 py-1">الوصف</th><th class="border px-2 py-1">المبلغ</th><th class="border px-2 py-1">التاريخ</th><th class="border px-2 py-1">الإجراءات</th></tr></thead><tbody>';
   if (res.ok && data.length) {
     data.forEach(e => {
-      html += `<tr><td class="border px-2 py-1">${e.id}</td><td class="border px-2 py-1">${e.description}</td><td class="border px-2 py-1">${e.Amount}</td><td class="border px-2 py-1">${e.ExpenseDate}</td><\/tr>`;
+      html += `<tr>
+        <td class="border px-2 py-1">${e.ExpenseID}</td>
+        <td class="border px-2 py-1">${e.Description}</td>
+        <td class="border px-2 py-1">${e.Amount}</td>
+        <td class="border px-2 py-1">${e.ExpenseDate}</td>
+        <td class="border px-2 py-1">
+          <button data-id="${e.ExpenseID}" class="edit-expense bg-yellow-400 px-2 py-1 rounded mr-1">تعديل</button>
+          <button data-id="${e.ExpenseID}" class="delete-expense bg-red-500 text-white px-2 py-1 rounded">حذف</button>
+        </td>
+      </tr>`;
     });
-  } else html += '<tr><td colspan="4" class="text-center py-2">لا توجد بيانات</td></tr>';
-  html += '<\/tbody><\/table>';
+  } else html += '<tr><td colspan="5" class="text-center py-2">لا توجد بيانات</td></tr>';
+  html += '</tbody></table>';
   document.getElementById('content').innerHTML = html;
+
+  document.getElementById('addExpenseBtn').addEventListener('click', showAddExpenseForm);
+  document.querySelectorAll('.edit-expense').forEach(btn =>
+    btn.addEventListener('click', () => showEditExpenseForm(btn.dataset.id))
+  );
+  document.querySelectorAll('.delete-expense').forEach(btn =>
+    btn.addEventListener('click', () => deleteExpense(btn.dataset.id))
+  );
 }
 
 async function loadPayments() {
