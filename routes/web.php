@@ -20,7 +20,7 @@ Route::middleware(['auth'])->group(function () {
 
     // باقي الراوتس لو عاوز تحتفظ بيهم
     Route::resource('traders', App\Http\Controllers\TraderController::class);
-   
+
     Route::get('/traders/financials', [TraderFinancialController::class, 'index'])->name('traders.financials');
     Route::get('/traders/{id}/financials', [TraderFinancialController::class, 'show'])->name('traders.financials.show');
     Route::get('/traders/{id}/dashboard', [App\Http\Controllers\TraderController::class, 'dashboard'])->name('traders.dashboard');
@@ -34,6 +34,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('purchases', App\Http\Controllers\PurchaseController::class);
     Route::resource('expenses', App\Http\Controllers\ExpenseController::class);
     Route::resource('payments', App\Http\Controllers\PaymentController::class);
+    Route::post('/api/purchases', [\App\Http\Controllers\PurchasesController::class, 'store']);
 });
 
 require __DIR__.'/auth.php';

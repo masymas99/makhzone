@@ -4,9 +4,10 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline'; connect-src 'self' http://localhost:3001">
   <title>لوحة التحكم</title>
   <link href="https://fonts.googleapis.com/css2?family=Cairo&display=swap" rel="stylesheet">
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="public/css/output.css" rel="stylesheet">
   <style>body { font-family: 'Cairo', sans-serif; }</style>
 </head>
 <body class="bg-gray-100">
@@ -44,19 +45,36 @@
     async function loadSales() {
       const res = await fetch('http://localhost:3001/api/sales');
       const data = await res.json();
-      let html = '<h2 class="text-2xl mb-4">قائمة الفواتير</h2>';
+      let html = '<div class="flex justify-between items-center mb-4">'
+        + '<h2 class="text-2xl">قائمة الفواتير</h2>'
+        + '<button id="addSaleBtn" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">+ إنشاء فاتورة</button>'
+      + '</div>';
       if (!res.ok) html += `<p class="text-red-600">${data.error}</p>`;
       else if (data.length === 0) html += '<p>لا توجد فواتير.</p>';
       else {
         html += '<table class="min-w-full bg-white border">';
-        html += '<thead><tr><th class="border px-2 py-1">ID</th><th class="border px-2 py-1">التاجر</th><th class="border px-2 py-1">التاريخ</th><th class="border px-2 py-1">الإجمالي</th></tr></thead>';
+        html += '<thead><tr><th class="border px-2 py-1">ID</th><th class="border px-2 py-1">التاجر</th><th class="border px-2 py-1">التاريخ</th><th class="border px-2 py-1">الإجمالي</th><th class="border px-2 py-1">الإجراءات</th></tr></thead>';
         html += '<tbody>';
         data.forEach(s => {
-          html += `<tr><td class="border px-2 py-1">${s.SaleID}</td><td class="border px-2 py-1">${s.trader?.TraderName || '-'}</td><td class="border px-2 py-1">${s.SaleDate}</td><td class="border px-2 py-1">${s.TotalAmount}</td></tr>`;
+          html += `<tr>
+            <td class="border px-2 py-1">${s.SaleID}</td>
+            <td class="border px-2 py-1">${s.trader?.TraderName || '-'}</td>
+            <td class="border px-2 py-1">${formatDate(s.SaleDate)}</td>
+            <td class="border px-2 py-1">${s.TotalAmount}</td>
+            <td class="border px-2 py-1 space-x-2">
+              <button class="view-sale text-blue-600" data-id="${s.SaleID}">عرض</button>
+              <button class="edit-sale text-green-600" data-id="${s.SaleID}">تعديل</button>
+              <button class="delete-sale text-red-600" data-id="${s.SaleID}">حذف</button>
+            </td>
+          </tr>`;
         });
         html += '</tbody></table>';
       }
       document.getElementById('content').innerHTML = html;
+      document.getElementById('addSaleBtn').addEventListener('click', showAddSaleForm);
+      document.querySelectorAll('.view-sale').forEach(btn => btn.addEventListener('click', () => showSaleDetails(btn.dataset.id)));
+      document.querySelectorAll('.edit-sale').forEach(btn => btn.addEventListener('click', () => showEditSaleForm(btn.dataset.id)));
+      document.querySelectorAll('.delete-sale').forEach(btn => btn.addEventListener('click', () => deleteSale(btn.dataset.id)));
     }
     async function loadProducts() {
       const res = await fetch('http://localhost:3001/api/products');
@@ -67,49 +85,191 @@
         + '<button id="addProductBtn" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">+ إضافة منتج</button>'
       + '</div>';
       html += '<table class="min-w-full bg-white border">';
-      html += '<thead><tr><th class="border px-2 py-1">ID</th><th class="border px-2 py-1">الاسم</th><th class="border px-2 py-1">الصنف</th><th class="border px-2 py-1">الكمية</th><th class="border px-2 py-1">السعر</th></tr></thead>';
+      html += '<thead><tr><th class="border px-2 py-1">ID</th><th class="border px-2 py-1">الاسم</th><th class="border px-2 py-1">الصنف</th><th class="border px-2 py-1">الكمية</th><th class="border px-2 py-1">سعر البيع</th><th class="border px-2 py-1">سعر التكلفة</th><th class="border px-2 py-1">الإجراءات</th></tr></thead>';
       html += '<tbody>';
       if (res.ok && data.length) {
         data.forEach(p => {
-          html += `<tr><td class="border px-2 py-1">${p.ProductID}</td><td class="border px-2 py-1">${p.ProductName}</td><td class="border px-2 py-1">${p.Category}</td><td class="border px-2 py-1">${p.StockQuantity}</td><td class="border px-2 py-1">${p.UnitPrice}</td></tr>`;
-        });
-      } else html += '<tr><td colspan="5" class="text-center py-2">لا توجد بيانات</td></tr>';
+            html += `<tr><td class="border px-2 py-1">${p.ProductID}</td><td class="border px-2 py-1">${p.ProductName}</td><td class="border px-2 py-1">${p.Category}</td><td class="border px-2 py-1">${p.StockQuantity}</td><td class="border px-2 py-1">${p.UnitPrice.toFixed(2)}</td><td class="border px-2 py-1">${p.UnitCost ? p.UnitCost.toFixed(2) : '-'}</td><td class="border px-2 py-1"><button data-id="${p.ProductID}" class="edit-product bg-yellow-400 px-2 py-1 rounded mr-1">تعديل</button><button data-id="${p.ProductID}" class="delete-product bg-red-500 text-white px-2 py-1 rounded">حذف</button></td></tr>`;                   });
+      } else html += '<tr><td colspan="6" class="text-center py-2">لا توجد بيانات</td></tr>';
       html += '</tbody></table>';
       document.getElementById('content').innerHTML = html;
+      document.querySelectorAll('.edit-product').forEach(btn => btn.addEventListener('click', () => showEditProductForm(btn.dataset.id)));
+      document.querySelectorAll('.delete-product').forEach(btn => btn.addEventListener('click', () => deleteProduct(btn.dataset.id)));
       // handle add button
       document.getElementById('addProductBtn').addEventListener('click', showAddProductForm);
     }
     async function loadTraders() {
       const res = await fetch('http://localhost:3001/api/traders');
       const data = await res.json();
-      // header with add button
       let html = '<div class="flex justify-between items-center mb-4">'
         + '<h2 class="text-2xl">التجار</h2>'
         + '<button id="addTraderBtn" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">+ إضافة تاجر</button>'
       + '</div>';
-      html += '<table class="min-w-full bg-white border"><thead><tr><th class="border px-2 py-1">ID</th><th class="border px-2 py-1">الاسم</th><th class="border px-2 py-1">الرصيد</th></tr></thead><tbody>';
+      html += '<table class="min-w-full bg-white border"><thead><tr><th class="border px-2 py-1">ID</th><th class="border px-2 py-1">الاسم</th><th class="border px-2 py-1">الرصيد الحالي</th><th class="border px-2 py-1">الإجراءات</th></tr></thead><tbody>';
       if (res.ok && data.length) {
-        data.forEach(t => {
-          html += `<tr><td class="border px-2 py-1">${t.TraderID}</td><td class="border px-2 py-1">${t.TraderName}</td><td class="border px-2 py-1">${t.Balance}</td></tr>`;
-        });
-      } else html += '<tr><td colspan="3" class="text-center py-2">لا توجد بيانات</td></tr>';
+        await Promise.all(data.map(async t => {
+          // Get all sales for this trader
+          const salesRes = await fetch(`http://localhost:3001/api/sales?trader=${t.TraderID}`);
+          const sales = await salesRes.json();
+          
+          // Calculate total paid amount
+          const totalPaidAmount = sales.reduce((total, sale) => total + sale.PaidAmount, 0);
+          
+          // Calculate balance
+          const balance = totalPaidAmount - t.TotalSales;
+          const balanceClass = balance < 0 ? 'text-red-600' : 'text-green-600';
+          const balanceSign = balance < 0 ? '-' : '+';
+          const balanceValue = Math.abs(balance);
+          
+          html += `<tr>
+            <td class="border px-2 py-1">${t.TraderID}</td>
+            <td class="border px-2 py-1">${t.TraderName}</td>
+            <td class="border px-2 py-1 ${balanceClass}">${balanceSign}${balanceValue}</td>
+            <td class="border px-2 py-1">
+              <button data-id="${t.TraderID}" class="view-trader bg-blue-500 text-white px-2 py-1 rounded mr-1">عرض</button>
+              <button data-id="${t.TraderID}" class="manual-payment bg-purple-500 text-white px-2 py-1 rounded mr-1">إضافة دفعة</button>
+              <button data-id="${t.TraderID}" class="edit-trader bg-yellow-400 px-2 py-1 rounded mr-1">تعديل</button>
+              <button data-id="${t.TraderID}" class="delete-trader bg-red-500 text-white px-2 py-1 rounded">حذف</button>
+            </td>
+          </tr>`;
+        }));
+      } else {
+        html += '<tr><td colspan="3" class="text-center py-2">لا توجد بيانات</td></tr>';
+      }
       html += '</tbody></table>';
       document.getElementById('content').innerHTML = html;
-      // handle add button
       document.getElementById('addTraderBtn').addEventListener('click', showAddTraderForm);
+      document.querySelectorAll('.view-trader').forEach(btn => btn.addEventListener('click', e => showTraderDetails(e.target.dataset.id)));
+      document.querySelectorAll('.manual-payment').forEach(btn => btn.addEventListener('click', e => showManualPaymentForm(e.target.dataset.id)));
+      document.querySelectorAll('.edit-trader').forEach(btn => btn.addEventListener('click', e => showEditTraderForm(e.target.dataset.id)));
+      document.querySelectorAll('.delete-trader').forEach(btn => btn.addEventListener('click', e => deleteTrader(e.target.dataset.id)));
     }
     async function loadPurchases() {
       const res = await fetch('http://localhost:3001/api/purchases');
       const data = await res.json();
-      let html = '<h2 class="text-2xl mb-4">المشتريات</h2>';
-      html += '<table class="min-w-full bg-white border"><thead><tr><th class="border px-2 py-1">ID</th><th class="border px-2 py-1">المنتج</th><th class="border px-2 py-1">المورد</th><th class="border px-2 py-1">الكمية</th><th class="border px-2 py-1">التكلفة</th></tr></thead><tbody>';
-      if (res.ok && data.length) {
+      let html = '<div class="flex justify-between items-center mb-4">'
+        + '<h2 class="text-2xl">المشتريات</h2>'
+        + '<div class="space-x-2">'
+        + '<button id="addPurchaseBtn" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">+ إنشاء مشتريات</button>'
+        + '<button id="addProductFromPurchaseBtn" class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">+ إضافة منتج جديد</button>'
+        + '</div>'
+      + '</div>';
+
+      // Function to calculate average price and update product
+      async function calculateAndUpdatePrice(productId, newQuantity, newPrice) {
+        try {
+          // Get current product data
+          const productRes = await fetch(`http://localhost:3001/api/products/${productId}`);
+          const product = await productRes.json();
+
+          if (!productRes.ok) throw new Error(product.error || 'Failed to fetch product');
+
+          // Calculate new average price
+          const totalValue = (product.StockQuantity * product.UnitPrice) + (newQuantity * newPrice);
+          const totalQuantity = product.StockQuantity + newQuantity;
+          const newAveragePrice = totalValue / totalQuantity;
+
+          // Update product with new price and quantity
+          const updateRes = await fetch(`http://localhost:3001/api/products/${productId}`, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+              StockQuantity: totalQuantity,
+              UnitPrice: newAveragePrice
+            })
+          });
+
+          if (!updateRes.ok) throw new Error('Failed to update product price');
+
+          return true;
+        } catch (error) {
+          console.error('Error updating product price:', error);
+          return false;
+        }
+      }
+      if (!res.ok) html += `<p class="text-red-600">${data.error}</p>`;
+      else if (data.length === 0) html += '<p>لا توجد مشتريات.</p>';
+      else {
+        html += '<table class="min-w-full bg-white border"><thead><tr><th class="border px-2 py-1">ID</th><th class="border px-2 py-1">التاريخ</th><th class="border px-2 py-1">المنتجات</th><th class="border px-2 py-1">المورد</th><th class="border px-2 py-1">الكميات</th><th class="border px-2 py-1">التكاليف</th></tr></thead><tbody>';
+        const groupedPurchases = {};
         data.forEach(p => {
-          html += `<tr><td class="border px-2 py-1">${p.PurchaseID}</td><td class="border px-2 py-1">${p.ProductName}</td><td class="border px-2 py-1">${p.SupplierName}</td><td class="border px-2 py-1">${p.Quantity}</td><td class="border px-2 py-1">${p.UnitCost}</td></tr>`;
+          if (!groupedPurchases[p.PurchaseID]) {
+            groupedPurchases[p.PurchaseID] = {
+              PurchaseID: p.PurchaseID,
+              PurchaseDate: p.PurchaseDate,
+              SupplierName: p.SupplierName || '',
+              Products: [],
+              Quantities: [],
+              Costs: []
+            };
+          }
+          groupedPurchases[p.PurchaseID].Products.push(p.ProductName || '-')
+          groupedPurchases[p.PurchaseID].Quantities.push(p.detail_quantity || '')
+          groupedPurchases[p.PurchaseID].Costs.push(p.detail_unit_cost || '')
         });
-      } else html += '<tr><td colspan="5" class="text-center py-2">لا توجد بيانات</td></tr>';
-      html += '</tbody></table>';
+
+        Object.values(groupedPurchases).forEach(p => {
+          html += `
+            <tr>
+              <td class="border px-2 py-1">${p.PurchaseID}</td>
+              <td class="border px-2 py-1">${formatDate(p.PurchaseDate)}</td>
+              <td class="border px-2 py-1">${p.Products.join('<br>')}</td>
+              <td class="border px-2 py-1">${p.SupplierName}</td>
+              <td class="border px-2 py-1">${p.Quantities.join('<br>')}</td>
+              <td class="border px-2 py-1">${p.Costs.join('<br>')}</td>
+            </tr>`;
+        });
+        html += '</tbody></table>';
+      }
       document.getElementById('content').innerHTML = html;
+      document.getElementById('addPurchaseBtn').addEventListener('click', showAddPurchaseForm);
+      document.getElementById('addProductFromPurchaseBtn').addEventListener('click', () => {
+        const productForm = document.createElement('div');
+        productForm.innerHTML = `
+          <div class="max-w-md mx-auto bg-white p-6 rounded shadow">
+            <h3 class="text-xl mb-4">إضافة منتج جديد</h3>
+            <div id="productMsg"></div>
+            <form id="productForm" class="space-y-4">
+              <input type="text" id="pName" placeholder="الاسم" class="w-full border px-3 py-2 rounded" required />
+              <input type="text" id="pCategory" placeholder="الصنف" class="w-full border px-3 py-2 rounded" required />
+              <input type="number" id="pStock" placeholder="الكمية" class="w-full border px-3 py-2 rounded" required />
+              <input type="number" step="0.01" id="pPrice" placeholder="سعر البيع" class="w-full border px-3 py-2 rounded" required />
+              <input type="number" step="0.01" id="pCost" placeholder="سعر الشراء" class="w-full border px-3 py-2 rounded" required />
+              <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded">حفظ</button>
+            </form>
+          </div>
+        `;
+        document.getElementById('content').innerHTML = '';
+        document.getElementById('content').appendChild(productForm);
+
+        document.getElementById('productForm').addEventListener('submit', async e => {
+          e.preventDefault();
+          const payload = {
+            ProductName: document.getElementById('pName').value,
+            Category: document.getElementById('pCategory').value,
+            StockQuantity: +document.getElementById('pStock').value,
+            UnitPrice: +document.getElementById('pPrice').value,
+            UnitCost: +document.getElementById('pCost').value,
+            IsActive: true
+          };
+          try {
+            const res = await fetch('http://localhost:3001/api/products', {
+              method: 'POST',
+              headers: {'Content-Type':'application/json'},
+              body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (res.ok) {
+              // After adding product, show purchase form with this product
+              showAddPurchaseForm(data.ProductID);
+            } else {
+              document.getElementById('productMsg').innerHTML = `<p class="text-red-600">${data.error}</p>`;
+            }
+          } catch {
+            document.getElementById('productMsg').innerHTML = '<p class="text-red-600">خطأ في الاتصال</p>';
+          }
+        });
+      });
     }
     async function loadExpenses() {
       const res = await fetch('http://localhost:3001/api/expenses');
@@ -149,7 +309,7 @@
             <input type="number" id="pStock" placeholder="الكمية" class="w-full border px-3 py-2 rounded" required />
             <input type="number" step="0.01" id="pPrice" placeholder="سعر الوحدة" class="w-full border px-3 py-2 rounded" required />
             <input type="number" step="0.01" id="pCost" placeholder="تكلفة الوحدة" class="w-full border px-3 py-2 rounded" required />
-            <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600">حفظ</button>
+            <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded">حفظ</button>
           </form>
         </div>
       `;
@@ -181,7 +341,7 @@
             <input type="text" id="tName" placeholder="الاسم" class="w-full border px-3 py-2 rounded" required />
             <input type="text" id="tPhone" placeholder="الهاتف" class="w-full border px-3 py-2 rounded" required />
             <input type="text" id="tAddress" placeholder="العنوان" class="w-full border px-3 py-2 rounded" required />
-            <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600">حفظ</button>
+            <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded">حفظ</button>
           </form>
         </div>
       `;
@@ -200,6 +360,496 @@
           if (res.ok) loadTraders(); else document.getElementById('traderMsg').innerHTML = `<p class="text-red-600">${data.error}</p>`;
         } catch { document.getElementById('traderMsg').innerHTML = '<p class="text-red-600">خطأ في الاتصال</p>'; }
       });
+    }
+    // edit product
+    function showEditProductForm(id) {
+      fetch(`http://localhost:3001/api/products/${id}`)
+        .then(res => res.json())
+        .then(p => {
+          const html = `
+            <div class="max-w-md mx-auto bg-white p-6 rounded shadow">
+              <h3 class="text-xl mb-4">تعديل منتج</h3>
+              <div id="productMsg"></div>
+              <form id="editProductForm" class="space-y-4">
+                <input type="text" id="eName" value="${p.ProductName}" class="w-full border px-3 py-2 rounded" required />
+                <input type="text" id="eCategory" value="${p.Category}" class="w-full border px-3 py-2 rounded" required />
+                <input type="number" id="eStock" value="${p.StockQuantity}" class="w-full border px-3 py-2 rounded" required />
+                <input type="number" step="0.01" id="ePrice" value="${p.UnitPrice}" class="w-full border px-3 py-2 rounded" required />
+                <input type="number" step="0.01" id="eCost" value="${p.UnitCost}" class="w-full border px-3 py-2 rounded" required />
+                <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded">حفظ التعديلات</button>
+              </form>
+            </div>
+          `;
+          document.getElementById('content').innerHTML = html;
+          document.getElementById('editProductForm').addEventListener('submit', async e => {
+            e.preventDefault();
+            const payload = {
+              ProductName: document.getElementById('eName').value,
+              Category: document.getElementById('eCategory').value,
+              StockQuantity: +document.getElementById('eStock').value,
+              UnitPrice: +document.getElementById('ePrice').value,
+              UnitCost: +document.getElementById('eCost').value,
+              IsActive: true
+            };
+            try {
+              const res = await fetch(`http://localhost:3001/api/products/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+              const data = await res.json();
+              if (res.ok) loadProducts(); else document.getElementById('productMsg').innerHTML = `<p class="text-red-600">${data.error}</p>`;
+            } catch { document.getElementById('productMsg').innerHTML = '<p class="text-red-600">خطأ في الاتصال</p>'; }
+          });
+        });
+    }
+    // delete product
+    function deleteProduct(id) {
+      if (!confirm('هل أنت متأكد من حذف المنتج؟')) return;
+      fetch(`http://localhost:3001/api/products/${id}`, { method: 'DELETE' })
+        .then(res => res.json())
+        .then(() => loadProducts());
+    }
+    // edit trader
+    function showEditTraderForm(id) {
+      fetch(`http://localhost:3001/api/traders/${id}`)
+        .then(res => res.json())
+        .then(t => {
+          const html = `
+            <div class="max-w-md mx-auto bg-white p-6 rounded shadow">
+              <h3 class="text-xl mb-4">تعديل تاجر</h3>
+              <div id="traderMsg"></div>
+              <form id="editTraderForm" class="space-y-4">
+                <input type="text" id="eName" value="${t.TraderName}" class="w-full border px-3 py-2 rounded" required />
+                <input type="text" id="ePhone" value="${t.Phone}" class="w-full border px-3 py-2 rounded" required />
+                <input type="text" id="eAddress" value="${t.Address}" class="w-full border px-3 py-2 rounded" required />
+                <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded">حفظ التعديلات</button>
+              </form>
+            </div>
+          `;
+          document.getElementById('content').innerHTML = html;
+          document.getElementById('editTraderForm').addEventListener('submit', async e => {
+            e.preventDefault();
+            const payload = {
+              TraderName: document.getElementById('eName').value,
+              Phone: document.getElementById('ePhone').value,
+              Address: document.getElementById('eAddress').value,
+              IsActive: true
+            };
+            try {
+              const res = await fetch(`http://localhost:3001/api/traders/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+              const data = await res.json();
+              if (res.ok) loadTraders(); else document.getElementById('traderMsg').innerHTML = `<p class="text-red-600">${data.error}</p>`;
+            } catch { document.getElementById('traderMsg').innerHTML = '<p class="text-red-600">خطأ في الاتصال</p>'; }
+          });
+        });
+    }
+    // delete trader
+    function deleteTrader(id) {
+      if (!confirm('هل أنت متأكد من حذف التاجر؟')) return;
+      fetch(`http://localhost:3001/api/traders/${id}`, { method: 'DELETE' })
+        .then(res => res.json())
+        .then(() => loadTraders());
+    }
+    // show trader details
+    async function showTraderDetails(id) {
+      const [traderRes, salesRes] = await Promise.all([
+        fetch(`http://localhost:3001/api/traders/${id}`),
+        fetch(`http://localhost:3001/api/sales?trader=${id}`)
+      ]);
+      const trader = await traderRes.json();
+      const sales = await salesRes.json();
+
+      // Calculate total paid amount from all invoices
+      const totalPaidAmount = sales.reduce((total, sale) => total + sale.PaidAmount, 0);
+      
+      // Calculate balance
+      const balance = totalPaidAmount - trader.TotalSales;
+      const balanceClass = balance < 0 ? 'text-red-600' : 'text-green-600';
+      const balanceSign = balance < 0 ? '-' : '+';
+      const balanceValue = Math.abs(balance);
+
+      let html = `<div class="max-w-md mx-auto bg-white p-6 rounded shadow"><h3 class="text-xl mb-4">تفاصيل التاجر</h3><ul class="list-disc list-inside space-y-1">`;
+      html += `<li>ID: ${trader.TraderID}</li>`;
+      html += `<li>الاسم: ${trader.TraderName}</li>`;
+      html += `<li>الهاتف: ${trader.Phone}</li>`;
+      html += `<li>العنوان: ${trader.Address}</li>`;
+      html += `<li class="${balanceClass}">الرصيد: ${balanceSign}${balanceValue}</li>`;
+      html += `<li>إجمالي المبيعات: ${trader.TotalSales}</li>`;
+      html += `<li>إجمالي الدفعات: ${totalPaidAmount}</li>`;
+      html += `<li>نشط: ${trader.IsActive ? 'نعم' : 'لا'}</li>`;
+      html += `</ul>`;
+
+      // Add manual payment section
+      html += `<div class="mt-4 p-4 bg-gray-50 rounded">
+        <h4 class="text-lg mb-2">إضافة دفعة يدوية</h4>
+        <div id="manualPaymentMsg" class="mb-2"></div>
+        <form id="manualPaymentForm" class="space-y-2">
+          <input type="hidden" id="manualTraderId" value="${trader.TraderID}">
+          <input type="number" id="manualPaymentAmount" placeholder="المبلغ" class="w-full border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required />
+          <input type="date" id="manualPaymentDate" class="w-full border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required />
+          <textarea id="manualPaymentNote" placeholder="ملاحظات (اختياري)" class="w-full border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+          <button type="submit" class="w-full bg-purple-500 text-white py-2 rounded">إضافة الدفعة</button>
+        </form>
+      </div>`;
+
+      html += `<button id="backToTraders" class="mt-4 bg-gray-500 text-white px-3 py-1 rounded">رجوع للتجار</button></div>`;
+      document.getElementById('content').innerHTML = html;
+
+      // Handle manual payment form submission
+      document.getElementById('manualPaymentForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const traderId = document.getElementById('manualTraderId').value;
+        const amount = document.getElementById('manualPaymentAmount').value;
+        const paymentDate = document.getElementById('manualPaymentDate').value;
+        const note = document.getElementById('manualPaymentNote').value;
+
+        const res = await fetch('http://localhost:3001/api/manual-payments', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            TraderID: traderId,
+            Amount: parseFloat(amount),  // Convert to number
+            PaymentDate: new Date(paymentDate).toISOString().split('T')[0],  // Format date as YYYY-MM-DD
+            Note: note
+          })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          document.getElementById('manualPaymentMsg').innerHTML = '<p class="text-green-600">تم إضافة الدفعة بنجاح</p>';
+          // Reset form
+          document.getElementById('manualPaymentForm').reset();
+        } else {
+          document.getElementById('manualPaymentMsg').innerHTML = `<p class="text-red-600">${data.error || 'خطأ في إضافة الدفعة'}</p>`;
+        }
+      });
+
+      document.getElementById('backToTraders').addEventListener('click', loadTraders);
+    }
+    // show create sale form
+    async function showAddSaleForm() {
+      const [trRes, prodRes] = await Promise.all([fetch('http://localhost:3001/api/traders'), fetch('http://localhost:3001/api/products')]);
+      const [traders, products] = await Promise.all([trRes.json(), prodRes.json()]);
+      let html = `
+        <div class="max-w-2xl mx-auto bg-white p-6 rounded shadow">
+          <h3 class="text-xl mb-4">إنشاء فاتورة</h3>
+          <div id="saleMsg"></div>
+          <form id="saleForm" class="space-y-4">
+            <label>التاجر</label>
+            <select id="sTrader" class="w-full border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              <option value="">اختر تاجر</option>`;
+      traders.forEach(t => { html += `<option value="${t.TraderID}">${t.TraderName}</option>`; });
+      html += `
+            </select>
+            <div id="productRows" class="space-y-2">
+              <div class="flex items-center space-x-2">
+                <select id="sProduct0" class="flex-1 border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                  <option value="">اختر منتج</option>`;
+      products.forEach(p => { html += `<option value="${p.ProductID}" data-price="${p.UnitPrice}" data-cost="${p.UnitCost}" data-stock="${p.StockQuantity}">${p.ProductName} (متوفر: ${p.StockQuantity})</option>`; });
+      html += `
+                </select>
+                <input id="sQuantity0" type="number" min="1" placeholder="الكمية" class="w-1/3 border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+                <button id="addProductRow" type="button" class="text-blue-600 font-bold">+</button>
+              </div>
+            </div>
+            <label>المبلغ المدفوع</label>
+            <input id="sPaid" type="number" min="0" value="0" class="w-full border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">حفظ</button>
+          </form>
+        </div>`;
+      document.getElementById('content').innerHTML = html;
+      let cnt = 1;
+      document.getElementById('addProductRow').addEventListener('click', () => {
+        const div = document.createElement('div'); div.className = 'flex items-center space-x-2';
+        const sel = document.createElement('select'); sel.className='flex-1 border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500'; sel.id=`sProduct${cnt}`;
+        sel.innerHTML = '<option value="">اختر منتج</option>';
+        products.forEach(p => { sel.innerHTML += `<option value="${p.ProductID}" data-price="${p.UnitPrice}" data-cost="${p.UnitCost}" data-stock="${p.StockQuantity}">${p.ProductName} (متوفر: ${p.StockQuantity})</option>`; });
+        const inp = document.createElement('input'); inp.type='number'; inp.min=1; inp.placeholder='الكمية'; inp.id=`sQuantity${cnt}`; inp.className='w-1/3 border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500';
+        const rm = document.createElement('button'); rm.type='button'; rm.textContent='حذف'; rm.className='text-red-600'; rm.addEventListener('click', () => div.remove());
+        div.append(sel, inp, rm); document.getElementById('productRows').append(div); cnt++;
+      });
+      document.getElementById('saleForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const TraderID = +document.getElementById('sTrader').value;
+        const PaidAmount = +document.getElementById('sPaid').value || 0;
+        const prods = [];
+        for (let i = 0; i < cnt; i++) {
+          const ps = document.getElementById(`sProduct${i}`);
+          const qs = document.getElementById(`sQuantity${i}`);
+          if (ps && ps.value) {
+            const stock = +ps.selectedOptions[0].dataset.stock;
+            if (+qs.value > stock) {
+              document.getElementById('saleMsg').innerHTML = `<p class="text-red-600">الكمية المطلوبة (${+qs.value}) تجاوزت المتوفر (${stock})</p>`;
+              return;
+            }
+            prods.push({ ProductID:+ps.value, Quantity:+qs.value, UnitPrice:+ps.selectedOptions[0].dataset.price, UnitCost:+ps.selectedOptions[0].dataset.cost });
+          }
+        }
+        if (!TraderID || prods.length === 0) {
+          document.getElementById('saleMsg').innerHTML = '<p class="text-red-600">اكمل الحقول</p>';
+          return;
+        }
+        try {
+          const res = await fetch('http://localhost:3001/api/sales', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ TraderID, PaidAmount, products: prods }) });
+          const data = await res.json();
+          if (res.ok) loadSales(); else document.getElementById('saleMsg').innerHTML = `<p class="text-red-600">${data.error}</p>`;
+        } catch {
+          document.getElementById('saleMsg').innerHTML = '<p class="text-red-600">خطأ في الاتصال</p>';
+        }
+      });
+    }
+    // Show sale details
+    async function showSaleDetails(id) {
+      try {
+        const res = await fetch(`http://localhost:3001/api/sales/${id}`);
+        const s = await res.json();
+        if (!res.ok) throw new Error(s.error);
+        let html = `<div class="max-w-xl mx-auto bg-white p-6 rounded shadow"><h3 class="text-xl mb-4">تفاصيل الفاتورة #${s.SaleID}</h3>`;
+        html += `<ul class="list-disc list-inside space-y-1"><li>التاجر: ${s.trader?.TraderName || '-'}</li><li>تاريخ: ${formatDate(s.SaleDate)}</li><li>الإجمالي: ${s.TotalAmount}</li><li>المدفوع: ${s.PaidAmount}</li><li>المتبقي: ${s.RemainingAmount}</li></ul>`;
+        html += `<h4 class="mt-4 mb-2 font-semibold">المنتجات</h4><table class="min-w-full bg-white border"><thead><tr><th class="border px-2 py-1">المنتج</th><th class="border px-2 py-1">سعر الوحدة</th><th class="border px-2 py-1">الكمية</th><th class="border px-2 py-1">المجموع</th></tr></thead><tbody>`;
+        s.details.forEach(d => {
+          html += `<tr><td class="border px-2 py-1">${d.ProductName}</td><td class="border px-2 py-1">${d.UnitPrice}</td><td class="border px-2 py-1">${d.Quantity}</td><td class="border px-2 py-1">${d.SubTotal}</td></tr>`;
+        });
+        html += '</tbody></table>';
+        html += '<button id="backToSales" class="mt-4 bg-gray-500 text-white px-3 py-1 rounded">رجوع للفواتير</button></div>';
+        document.getElementById('content').innerHTML = html;
+        document.getElementById('backToSales').addEventListener('click', loadSales);
+      } catch (e) {
+        document.getElementById('content').innerHTML = `<p class="text-red-600">${e.message}</p>`;
+      }
+    }
+    // Delete sale
+    async function deleteSale(id) {
+      if (!confirm('هل أنت متأكد من حذف الفاتورة؟')) return;
+      const res = await fetch(`http://localhost:3001/api/sales/${id}`, { method: 'DELETE' });
+      if (res.ok) loadSales(); else {
+        const err = await res.json();
+        alert(err.error || 'فشل الحذف');
+      }
+    }
+    // Show edit sale form
+    async function showEditSaleForm(id) {
+      const [sRes, trRes, prodRes] = await Promise.all([fetch(`http://localhost:3001/api/sales/${id}`), fetch('http://localhost:3001/api/traders'), fetch('http://localhost:3001/api/products')]);
+      const s = await sRes.json(), traders = await trRes.json(), products = await prodRes.json();
+      let html = `<div class="max-w-2xl mx-auto bg-white p-6 rounded shadow"><h3 class="text-xl mb-4">تعديل الفاتورة #${s.SaleID}</h3>`;
+      html += `<div id="saleMsg"></div><form id="editSaleForm" class="space-y-4">`;
+      html += '<label>التاجر</label><select id="sTrader" class="w-full border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"><option value="">اختر تاجر</option>';
+      traders.forEach(t => { html += `<option value="${t.TraderID}"${t.TraderID===s.TraderID?' selected':''}>${t.TraderName}</option>`; });
+      html += '</select><div id="productRows" class="space-y-2">';
+      let cnt = 0;
+      s.details.forEach(d => {
+        html += `<div class="flex items-center space-x-2"><select id="sProduct${cnt}" class="flex-1 border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"><option value="">اختر منتج</option>`;
+        products.forEach(p => { html += `<option value="${p.ProductID}" data-price="${p.UnitPrice}" data-cost="${p.UnitCost}" data-stock="${p.StockQuantity}"${p.ProductID===d.ProductID?' selected':''}>${p.ProductName} (متوفر: ${p.StockQuantity})</option>`; });
+        html += `</select><input id="sQuantity${cnt}" type="number" min="1" value="${d.Quantity}" class="w-1/3 border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500" /><button type="button" class="remove-row text-red-600">حذف</button></div>`;
+        cnt++;
+      });
+      html += '</div><button id="addProductRow" type="button" class="text-blue-600 font-bold">+</button>';
+      html += '<label>المبلغ المدفوع</label>';
+      html += `<input id="sPaid" type="number" min="0" value="${s.PaidAmount}" class="w-full border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />`;
+      html += '<button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">حفظ التعديلات</button></form></div>';
+      document.getElementById('content').innerHTML = html;
+      document.getElementById('addProductRow').addEventListener('click', () => {
+        const div = document.createElement('div'); div.className = 'flex items-center space-x-2';
+        const sel = document.createElement('select'); sel.className='flex-1 border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500'; sel.id=`sProduct${cnt}`;
+        sel.innerHTML = '<option value="">اختر منتج</option>';
+        products.forEach(p => { sel.innerHTML += `<option value="${p.ProductID}" data-price="${p.UnitPrice}" data-cost="${p.UnitCost}" data-stock="${p.StockQuantity}">${p.ProductName} (متوفر: ${p.StockQuantity})</option>`; });
+        const inp = document.createElement('input'); inp.type='number'; inp.min=1; inp.placeholder='الكمية'; inp.id=`sQuantity${cnt}`; inp.className='w-1/3 border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500';
+        const rm = document.createElement('button'); rm.type='button'; rm.textContent='حذف'; rm.className='text-red-600'; rm.addEventListener('click', () => div.remove());
+        div.append(sel, inp, rm); document.getElementById('productRows').append(div); cnt++;
+      });
+      document.querySelectorAll('.remove-row').forEach(b => b.addEventListener('click', e => e.target.parentNode.remove()));
+      document.getElementById('editSaleForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const TraderID = +document.getElementById('sTrader').value;
+        const PaidAmount = +document.getElementById('sPaid').value || 0;
+        const prods = [];
+        for (let i = 0; i < cnt; i++) {
+          const ps = document.getElementById(`sProduct${i}`);
+          const qs = document.getElementById(`sQuantity${i}`);
+          if (ps && ps.value) {
+            const stock = +ps.selectedOptions[0].dataset.stock;
+            if (+qs.value > stock) {
+              document.getElementById('saleMsg').innerHTML = `<p class="text-red-600">الكمية المطلوبة (${+qs.value}) تجاوزت المتوفر (${stock})</p>`;
+              return;
+            }
+            prods.push({ ProductID:+ps.value, Quantity:+qs.value, UnitPrice:+ps.selectedOptions[0].dataset.price, UnitCost:+ps.selectedOptions[0].dataset.cost });
+          }
+        }
+        if (!TraderID || prods.length===0) {
+          document.getElementById('saleMsg').innerHTML='<p class="text-red-600">اكمل الحقول</p>';
+          return;
+        }
+        const res = await fetch(`http://localhost:3001/api/sales/${id}`, { method:'PUT', headers:{ 'Content-Type':'application/json' }, body:JSON.stringify({ TraderID, PaidAmount, products:prods }) });
+        const d = await res.json();
+        if (res.ok) loadSales(); else document.getElementById('saleMsg').innerHTML=`<p class="text-red-600">${d.error}</p>`;
+      });
+    }
+    // Show add purchase form
+    async function showAddPurchaseForm() {
+      const res = await fetch('http://localhost:3001/api/products');
+      const products = await res.json();
+      let html = `<div class="max-w-2xl mx-auto bg-white p-6 rounded shadow"><h3 class="text-xl mb-4">إنشاء مشتريات</h3><div id="purchaseMsg"></div><form id="purchaseForm" class="space-y-4">`;
+      html += `<label>المورد</label><input id="pSupplier" type="text" class="w-full border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="اسم المورد" required />`;
+      html += `<label>ملاحظات</label><textarea id="pNotes" class="w-full border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="ملاحظات (اختياري)"></textarea>`;
+      html += `<div id="purchaseRows" class="space-y-2">`;
+      html += `<div class="grid grid-cols-6 gap-2 items-center border-b pb-2 mb-2"><select id="pProduct0" class="col-span-2 border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"><option value="">اختر منتج</option><option value="new">+ منتج جديد</option>`;
+      products.forEach(p => { html += `<option value="${p.ProductID}" data-cost="${p.UnitCost}" data-stock="${p.StockQuantity}">${p.ProductName} (متوفر: ${p.StockQuantity})</option>`; });
+      html += `</select><input id="pQuantity0" type="number" min="1" placeholder="الكمية" class="col-span-1 border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500" /><input id="pCost0" type="number" step="0.01" placeholder="التكلفة" class="col-span-1 border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500" /><button id="addPurchaseRow" type="button" class="col-span-1 text-blue-600 font-bold text-2xl">+</button>
+        <div id="pNewFields0" class="col-span-6 grid grid-cols-3 gap-2 mt-2 hidden">
+          <input type="text" id="pNewName0" name="pNewName0" placeholder="اسم المنتج" class="border-gray-300 px-3 py-2 rounded flex-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+          <input type="text" id="pNewCategory0" name="pNewCategory0" placeholder="الصنف" class="border-gray-300 px-3 py-2 rounded flex-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+          <input type="number" step="0.01" id="pNewPrice0" name="pNewPrice0" placeholder="سعر الوحدة" class="border-gray-300 px-3 py-2 rounded flex-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+        </div></div>`;
+      html += `</div><button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">حفظ</button></form></div>`;
+      document.getElementById('content').innerHTML = html;
+      document.getElementById('pProduct0').addEventListener('change', e => {
+        document.getElementById('pNewFields0').classList.toggle('hidden', e.target.value !== 'new');
+      });
+      let cnt = 1;
+      document.getElementById('addPurchaseRow').addEventListener('click', () => {
+        const div = document.createElement('div'); div.className = 'grid grid-cols-6 gap-2 items-center border-b pb-2 mb-2';
+        const sel = document.createElement('select'); sel.id = `pProduct${cnt}`; sel.className = 'col-span-2 border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500'; sel.innerHTML = '<option value="">اختر منتج</option><option value="new">+ منتج جديد</option>';
+        products.forEach(p => { sel.innerHTML += `<option value="${p.ProductID}" data-cost="${p.UnitCost}" data-stock="${p.StockQuantity}">${p.ProductName} (متوفر: ${p.StockQuantity})</option>`; });
+        const q = document.createElement('input'); q.id = `pQuantity${cnt}`; q.type = 'number'; q.min = 1; q.placeholder = 'الكمية'; q.className = 'col-span-1 border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500';
+        const c = document.createElement('input'); c.id = `pCost${cnt}`; c.type = 'number'; c.step = '0.01'; c.placeholder = 'التكلفة'; c.className = 'col-span-1 border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500';
+        const rm = document.createElement('button'); rm.type = 'button'; rm.textContent = '×'; rm.className = 'col-span-1 text-red-600 font-bold'; rm.addEventListener('click', () => div.remove());
+        const newFields = document.createElement('div'); newFields.id = `pNewFields${cnt}`; newFields.className = 'col-span-6 grid grid-cols-3 gap-2 mt-2 hidden';
+        const newName = document.createElement('input'); newName.type = 'text'; newName.id = `pNewName${cnt}`; newName.name = `pNewName${cnt}`; newName.placeholder = 'اسم المنتج'; newName.className = 'border-gray-300 px-3 py-2 rounded flex-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500';
+        const newCat = document.createElement('input'); newCat.type = 'text'; newCat.id = `pNewCategory${cnt}`; newCat.name = `pNewCategory${cnt}`; newCat.placeholder = 'الصنف'; newCat.className = 'border-gray-300 px-3 py-2 rounded flex-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500';
+        const newPrice = document.createElement('input'); newPrice.type = 'number'; newPrice.step = '0.01'; newPrice.id = `pNewPrice${cnt}`; newPrice.name = `pNewPrice${cnt}`; newPrice.placeholder = 'سعر الوحدة'; newPrice.className = 'border-gray-300 px-3 py-2 rounded flex-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500';
+        newFields.append(newName, newCat, newPrice);
+        div.append(sel, q, c, rm);
+        div.append(newFields);
+        document.getElementById('purchaseRows').append(div); cnt++;
+        sel.addEventListener('change', e => {
+          document.getElementById(`pNewFields${cnt-1}`).classList.toggle('hidden', e.target.value !== 'new');
+        });
+      });
+      document.getElementById('purchaseForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const supplier_name = document.getElementById('pSupplier').value.trim();
+        const notes = document.getElementById('pNotes').value.trim();
+        const rows = [];
+        for (let i = 0; i < cnt; i++) {
+          const ps = document.getElementById(`pProduct${i}`);
+          const qs = document.getElementById(`pQuantity${i}`);
+          const cs = document.getElementById(`pCost${i}`);
+          if (ps && ps.value) {
+            if (ps.value === 'new') {
+              alert('يجب إضافة المنتج أولاً من قسم المنتجات');
+              return;
+            } else {
+              rows.push({ product_id: +ps.value, quantity: +qs.value, unit_cost: +cs.value });
+            }
+          }
+        }
+        if (!supplier_name) {
+          document.getElementById('purchaseMsg').innerHTML = '<p class="text-red-600">اسم المورد مطلوب</p>';
+          return;
+        }
+        if (rows.length === 0) {
+          document.getElementById('purchaseMsg').innerHTML = '<p class="text-red-600">اختر منتج واحد على الأقل</p>';
+          return;
+        }
+        console.log({ supplier_name, notes, products: rows });
+        const res2 = await fetch('http://localhost:3001/api/purchases', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  supplier_name,
+                  notes,
+                  products: rows.filter(p => p.product_id && !isNaN(p.product_id)) // التأكد من وجود معرف المنتج
+                })
+              });
+        const r = await res2.json();
+        console.log('Purchase POST status:', res2.status, 'response:', r);
+          if(res2.status === 400) {
+            document.getElementById('purchaseMsg').innerHTML = `<p class="text-red-600">${r.error || 'بيانات غير صالحة'}</p>`;
+          }
+        if (res2.ok) {
+          loadPurchases();
+        } else {
+          const errorMsg = r.details ? r.details.join(', ') : r.error;
+          document.getElementById('purchaseMsg').innerHTML = `<p class="text-red-600">${errorMsg || 'خطأ غير معروف'}</p>`;
+        }
+      });
+    }
+    // Function to show manual payment form
+    async function showManualPaymentForm(traderId) {
+      // Get trader info
+      const res = await fetch(`http://localhost:3001/api/traders/${traderId}`);
+      const trader = await res.json();
+
+      // Get today's date in YYYY-MM-DD format
+      const today = new Date().toISOString().split('T')[0];
+
+      let html = `<div class="max-w-md mx-auto bg-white p-6 rounded shadow">
+        <h3 class="text-xl mb-4">إضافة دفعة يدوية</h3>
+        <div id="manualPaymentMsg" class="mb-2"></div>
+        <form id="manualPaymentForm" class="space-y-4">
+          <div>
+            <label class="block mb-1">التاجر</label>
+            <input type="text" value="${trader.TraderName}" disabled class="w-full border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            <input type="hidden" id="manualTraderId" value="${traderId}">
+          </div>
+          <div>
+            <label class="block mb-1">المبلغ</label>
+            <input type="number" id="manualPaymentAmount" placeholder="المبلغ" class="w-full border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+          </div>
+          <div>
+            <label class="block mb-1">التاريخ</label>
+            <input type="date" id="manualPaymentDate" value="${today}" class="w-full border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+          </div>
+          <div>
+            <label class="block mb-1">ملاحظات</label>
+            <textarea id="manualPaymentNote" placeholder="ملاحظات (اختياري)" class="w-full border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+          </div>
+          <div class="flex justify-end space-x-2">
+            <button type="button" id="cancelManualPayment" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 hover:border-gray-400 transition-colors">إلغاء</button>
+            <button type="submit" class="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-700 transition-colors">إضافة الدفعة</button>
+          </div>
+        </form>
+      </div>`;
+
+      document.getElementById('content').innerHTML = html;
+
+      // Handle form submission
+      document.getElementById('manualPaymentForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const traderId = document.getElementById('manualTraderId').value;
+        const amount = document.getElementById('manualPaymentAmount').value;
+        const paymentDate = document.getElementById('manualPaymentDate').value;
+        const note = document.getElementById('manualPaymentNote').value;
+
+        const res = await fetch('http://localhost:3001/api/manual-payments', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            TraderID: traderId,
+            Amount: parseFloat(amount),  // Convert to number
+            PaymentDate: new Date(paymentDate).toISOString().split('T')[0],  // Format date as YYYY-MM-DD
+            Note: note
+          })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          document.getElementById('manualPaymentMsg').innerHTML = `<p class="text-green-600">${data.message || 'تم إضافة الدفعة بنجاح'}</p>`;
+          // Reset form
+          document.getElementById('manualPaymentForm').reset();
+          // Update traders list
+          loadTraders();
+        } else {
+          document.getElementById('manualPaymentMsg').innerHTML = `<p class="text-red-600">${data.error || 'خطأ في إضافة الدفعة'}</p>`;
+        }
+      });
+
+      // Handle cancel
+      document.getElementById('cancelManualPayment').addEventListener('click', () => {
+        loadTraders();
+      });
+    }
+    // Helper: format date string for display
+    function formatDate(dateStr) {
+      const d = new Date(dateStr);
+      return new Intl.DateTimeFormat('ar-EG', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
     }
     // navigation handler
     document.querySelectorAll('nav a').forEach(a => a.addEventListener('click', e => {

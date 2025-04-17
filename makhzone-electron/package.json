@@ -14,5 +14,10 @@
     "electron": "^35.1.5",
     "express": "^5.1.0",
     "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^4.1.4"
   }
 }
