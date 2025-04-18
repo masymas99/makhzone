@@ -205,7 +205,9 @@ async function loadExpenses() {
         + '<h2 class="text-2xl">المصروفات</h2>'
         + '<button id="addExpenseBtn" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">+ إضافة مصروف</button>'
         + '</div>';
-    html += '<table class="min-w-full bg-white border"><thead><tr><th class="border px-2 py-1">ID</th><th class="border px-2 py-1">الوصف</th><th class="border px-2 py-1">المبلغ</th><th class="border px-2 py-1">التاريخ</th><th class="border px-2 py-1">الإجراءات</th></tr></thead><tbody>';
+    html += '<table class="min-w-full bg-white border">';
+    html += '<thead><tr><th class="border px-2 py-1">ID</th><th class="border px-2 py-1">الوصف</th><th class="border px-2 py-1">المبلغ</th><th class="border px-2 py-1">التاريخ</th><th class="border px-2 py-1">الإجراءات</th></tr></thead>';
+    html += '<tbody>';
     if (res.ok && data.length) {
         data.forEach(e => {
             html += `<tr>
@@ -535,16 +537,31 @@ async function showEditPurchaseForm(id) {
 async function deletePurchase(id) {
     if (!confirm('هل أنت متأكد من حذف هذه المشتريات؟')) return;
     try {
-        const res = await fetch(`http://localhost:3001/api/purchases/${id}`, {
+        // First get purchase details to know which products to update
+        const res = await fetch(`http://localhost:3001/api/purchases/${id}`);
+        if (!res.ok) throw new Error('Failed to fetch purchase details');
+        const purchase = await res.json();
+
+        // Delete the purchase
+        const deleteRes = await fetch(`http://localhost:3001/api/purchases/${id}`, {
             method: 'DELETE'
         });
-        const result = await res.json();
-        if (res.ok) loadPurchases(); // Reload purchases after deletion
-        else alert(result.error || 'خطأ في حذف المشتريات');
-    } catch {
-        alert('خطأ في الاتصال بالخادم');
+        
+        if (!deleteRes.ok) throw new Error('Failed to delete purchase');
+        
+        // Update costs for each product in this purchase
+        for (const item of purchase.Items) {
+            await updateProductCostAfterDeletion(item.ProductID, item.Quantity, item.UnitCost);
+        }
+
+        // Reload purchases after deletion
+        await loadPurchases();
+        
+    } catch (error) {
+        alert(`خطأ: ${error.message}`);
+        console.error('Error deleting purchase:', error);
     }
-}
+};
 
 function addProductRow(product_id = '', product_name = '', category = '', quantity = '', unit_cost = '', unit_price = '') {
     const container = document.getElementById('productsContainer');
@@ -563,4 +580,69 @@ function addProductRow(product_id = '', product_name = '', category = '', quanti
     `;
     container.appendChild(row);
     row.querySelector('.remove-product').addEventListener('click', () => row.remove());
+}
+
+// Function to calculate weighted average cost
+async function calculateWeightedAverageCost(productId) {
+    try {
+        // Get all purchases for this product
+        const res = await fetch(`http://localhost:3001/api/purchases?productId=${productId}`);
+        if (!res.ok) throw new Error('Failed to fetch purchase history');
+        const purchases = await res.json();
+
+        let totalQuantity = 0;
+        let totalCost = 0;
+
+        // Calculate total quantity and total cost
+        purchases.forEach(purchase => {
+            totalQuantity += purchase.Quantity;
+            totalCost += purchase.Quantity * purchase.UnitCost;
+        });
+
+        // Calculate weighted average cost
+        const weightedAverageCost = totalQuantity > 0 ? (totalCost / totalQuantity).toFixed(2) : 0;
+
+        return weightedAverageCost;
+    } catch (error) {
+        console.error('Error calculating weighted average cost:', error);
+        return 0;
+    }
+}
+
+// Function to update product cost after purchase deletion
+async function updateProductCostAfterDeletion(productId, deletedQuantity, deletedCost) {
+    try {
+        // Get current product details
+        const res = await fetch(`http://localhost:3001/api/products/${productId}`);
+        if (!res.ok) throw new Error('Failed to fetch product details');
+        const product = await res.json();
+
+        // Calculate new quantity
+        const newQuantity = product.StockQuantity - deletedQuantity;
+
+        // If there's still quantity left, recalculate weighted average cost
+        if (newQuantity > 0) {
+            const newCost = await calculateWeightedAverageCost(productId);
+            await fetch(`http://localhost:3001/api/products/${productId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    StockQuantity: newQuantity,
+                    UnitCost: newCost
+                })
+            });
+        } else {
+            // If quantity becomes zero, set cost to 0
+            await fetch(`http://localhost:3001/api/products/${productId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    StockQuantity: 0,
+                    UnitCost: 0
+                })
+            });
+        }
+    } catch (error) {
+        console.error('Error updating product cost:', error);
+    }
 }

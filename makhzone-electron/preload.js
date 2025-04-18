@@ -1,3 +1,5 @@
+const { contextBridge, ipcRenderer } = require('electron');
+
 contextBridge.exposeInMainWorld('electronAPI', {
   addManualPayment: async (payload) => {
     try {
@@ -12,4 +14,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     }
   },
   // ... other exposed methods
+});
+
 });
