@@ -19,14 +19,44 @@
   <!-- Layout -->
   <div class="flex h-[calc(100vh-64px)]">
     <!-- Sidebar -->
-    <nav class="w-1/4 bg-white p-4 border-r">
-      <ul>
-        <li><a href="#" data-page="sales" class="block py-2 hover:bg-gray-100">الفواتير</a></li>
-        <li><a href="#" data-page="products" class="block py-2 hover:bg-gray-100">المنتجات</a></li>
-        <li><a href="#" data-page="traders" class="block py-2 hover:bg-gray-100">التجار</a></li>
-        <li><a href="#" data-page="purchases" class="block py-2 hover:bg-gray-100">المشتريات</a></li>
-        <li><a href="#" data-page="expenses" class="block py-2 hover:bg-gray-100">المصروفات</a></li>
-        <li><a href="#" data-page="payments" class="block py-2 hover:bg-gray-100">الدفعات</a></li>
+    <nav class="w-72 bg-white p-4 border-r shadow-lg">
+      <ul class="space-y-2">
+        <li><a href="#" data-page="sales" class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200">
+          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+          <span class="text-lg">الفواتير</span>
+        </a></li>
+        <li><a href="#" data-page="products" class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-green-50 hover:text-green-600 transition-colors duration-200">
+          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+          </svg>
+          <span class="text-lg">المنتجات</span>
+        </a></li>
+        <li><a href="#" data-page="traders" class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-purple-50 hover:text-purple-600 transition-colors duration-200">
+          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+          <span class="text-lg">التجار</span>
+        </a></li>
+        <li><a href="#" data-page="purchases" class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-yellow-50 hover:text-yellow-600 transition-colors duration-200">
+          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+          </svg>
+          <span class="text-lg">المشتريات</span>
+        </a></li>
+        <li><a href="#" data-page="expenses" class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors duration-200">
+          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+          <span class="text-lg">المصروفات</span>
+        </a></li>
+        <li><a href="#" data-page="payments" class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-orange-50 hover:text-orange-600 transition-colors duration-200">
+          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+          </svg>
+          <span class="text-lg">الدفعات</span>
+        </a></li>
       </ul>
     </nav>
     <!-- Content -->
@@ -41,6 +71,15 @@
       localStorage.removeItem('user');
       window.location.href = 'index.html';
     });
+    // Helper: format date string for display
+    function formatDate(dateStr) {
+        const d = new Date(dateStr);
+        return new Intl.DateTimeFormat('ar-EG', { 
+            year: 'numeric', 
+            month: '2-digit', 
+            day: '2-digit'
+        }).format(d);
+    }
     // Loader functions
     async function loadSales() {
       const res = await fetch('http://localhost:3001/api/sales');
@@ -174,128 +213,141 @@
     async function loadPurchases() {
       const res = await fetch('http://localhost:3001/api/purchases');
       const data = await res.json();
-      let html = '<div class="flex justify-between items-center mb-4">'
-        + '<h2 class="text-2xl">المشتريات</h2>'
-        + '<div class="space-x-2">'
-        + '<button id="addPurchaseBtn" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">+ إنشاء مشتريات</button>'
-        + '<button id="addProductFromPurchaseBtn" class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">+ إضافة منتج جديد</button>'
-        + '</div>'
-      + '</div>';
-
-      // Function to calculate average price and update product
-      async function calculateAndUpdatePrice(productId, newQuantity, newPrice) {
-        try {
-          // Get current product data
-          const productRes = await fetch(`http://localhost:3001/api/products/${productId}`);
-          const product = await productRes.json();
-
-          if (!productRes.ok) throw new Error(product.error || 'Failed to fetch product');
-
-          // Calculate new average price
-          const totalValue = (product.StockQuantity * product.UnitPrice) + (newQuantity * newPrice);
-          const totalQuantity = product.StockQuantity + newQuantity;
-          const newAveragePrice = totalValue / totalQuantity;
-
-          // Update product with new price and quantity
-          const updateRes = await fetch(`http://localhost:3001/api/products/${productId}`, {
-            method: 'PUT',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-              StockQuantity: totalQuantity,
-              UnitPrice: newAveragePrice
-            })
-          });
-
-          if (!updateRes.ok) throw new Error('Failed to update product price');
-
-          return true;
-        } catch (error) {
-          console.error('Error updating product price:', error);
-          return false;
-        }
-      }
-      if (!res.ok) html += `<p class="text-red-600">${data.error}</p>`;
-      else if (data.length === 0) html += '<p>لا توجد مشتريات.</p>';
-      else {
-        html += '<table class="min-w-full bg-white border"><thead><tr><th class="border px-2 py-1">ID</th><th class="border px-2 py-1">التاريخ</th><th class="border px-2 py-1">المنتجات</th><th class="border px-2 py-1">المورد</th><th class="border px-2 py-1">الكميات</th><th class="border px-2 py-1">التكاليف</th></tr></thead><tbody>';
-        const groupedPurchases = {};
-        data.forEach(p => {
-          if (!groupedPurchases[p.PurchaseID]) {
-            groupedPurchases[p.PurchaseID] = {
-              PurchaseID: p.PurchaseID,
-              PurchaseDate: p.PurchaseDate,
-              SupplierName: p.SupplierName || '',
-              Products: [],
-              Quantities: [],
-              Costs: []
-            };
-          }
-          groupedPurchases[p.PurchaseID].Products.push(p.ProductName || '-')
-          groupedPurchases[p.PurchaseID].Quantities.push(p.detail_quantity || '')
-          groupedPurchases[p.PurchaseID].Costs.push(p.detail_unit_cost || '')
-        });
-
-        Object.values(groupedPurchases).forEach(p => {
-          html += `
-            <tr>
-              <td class="border px-2 py-1">${p.PurchaseID}</td>
-              <td class="border px-2 py-1">${formatDate(p.PurchaseDate)}</td>
-              <td class="border px-2 py-1">${p.Products.join('<br>')}</td>
-              <td class="border px-2 py-1">${p.SupplierName}</td>
-              <td class="border px-2 py-1">${p.Quantities.join('<br>')}</td>
-              <td class="border px-2 py-1">${p.Costs.join('<br>')}</td>
-            </tr>`;
-        });
-        html += '</tbody></table>';
-      }
-      document.getElementById('content').innerHTML = html;
-      document.getElementById('addPurchaseBtn').addEventListener('click', showAddPurchaseForm);
-      document.getElementById('addProductFromPurchaseBtn').addEventListener('click', () => {
-        const productForm = document.createElement('div');
-        productForm.innerHTML = `
-          <div class="max-w-md mx-auto bg-white p-6 rounded shadow">
-            <h3 class="text-xl mb-4">إضافة منتج جديد</h3>
-            <div id="productMsg"></div>
-            <form id="productForm" class="space-y-4">
-              <input type="text" id="pName" placeholder="الاسم" class="w-full border px-3 py-2 rounded" required />
-              <input type="text" id="pCategory" placeholder="الصنف" class="w-full border px-3 py-2 rounded" required />
-              <input type="number" id="pStock" placeholder="الكمية" class="w-full border px-3 py-2 rounded" required />
-              <input type="number" step="0.01" id="pPrice" placeholder="سعر البيع" class="w-full border px-3 py-2 rounded" required />
-              <input type="number" step="0.01" id="pCost" placeholder="سعر الشراء" class="w-full border px-3 py-2 rounded" required />
-              <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded">حفظ</button>
-            </form>
+      console.log('Loading purchases data:', data);
+      
+      let html = `
+          <div class="flex justify-between items-center mb-4">
+              <h2 class="text-2xl">المشتريات</h2>
+              <button id="addPurchaseBtn" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">+ إنشاء مشتريات</button>
           </div>
-        `;
-        document.getElementById('content').innerHTML = '';
-        document.getElementById('content').appendChild(productForm);
+          <table class="min-w-full bg-white border">
+              <thead>
+                  <tr>
+                      <th class="border px-2 py-1">ID</th>
+                      <th class="border px-2 py-1">التاريخ</th>
+                      <th class="border px-2 py-1">المورد</th>
+                      <th class="border px-2 py-1">الإجمالي</th>
+                      <th class="border px-2 py-1">الإجراءات</th>
+                  </tr>
+              </thead>
+              <tbody id="purchasesTableBody">
+              </tbody>
+          </table>
+      `;
+      
+      document.getElementById('content').innerHTML = html;
+      
+      // Add event listener for add button
+      const addBtn = document.getElementById('addPurchaseBtn');
+      if (addBtn) {
+          addBtn.addEventListener('click', async () => {
+              console.log('Add purchase button clicked');
+              try {
+                  const productsRes = await fetch('http://localhost:3001/api/products');
+                  const products = await productsRes.json();
+                  showAddPurchaseForm(null, products);
+              } catch (error) {
+                  console.error('Error loading products:', error);
+                  alert('خطأ في تحميل المنتجات');
+              }
+          });
+      }
 
-        document.getElementById('productForm').addEventListener('submit', async e => {
-          e.preventDefault();
-          const payload = {
-            ProductName: document.getElementById('pName').value,
-            Category: document.getElementById('pCategory').value,
-            StockQuantity: +document.getElementById('pStock').value,
-            UnitPrice: +document.getElementById('pPrice').value,
-            UnitCost: +document.getElementById('pCost').value,
-            IsActive: true
-          };
-          try {
-            const res = await fetch('http://localhost:3001/api/products', {
-              method: 'POST',
-              headers: {'Content-Type':'application/json'},
-              body: JSON.stringify(payload)
-            });
-            const data = await res.json();
-            if (res.ok) {
-              // After adding product, show purchase form with this product
-              showAddPurchaseForm(data.ProductID);
-            } else {
-              document.getElementById('productMsg').innerHTML = `<p class="text-red-600">${data.error}</p>`;
-            }
-          } catch {
-            document.getElementById('productMsg').innerHTML = '<p class="text-red-600">خطأ في الاتصال</p>';
+      if (!res.ok) {
+          console.error('Error loading purchases:', data.error);
+          document.getElementById('purchasesTableBody').innerHTML = 
+              `<tr><td colspan="5" class="text-center py-2">${data.error}</td></tr>`;
+          return;
+      }
+      
+      if (data.length === 0) {
+          document.getElementById('purchasesTableBody').innerHTML = 
+              '<tr><td colspan="5" class="text-center py-2">لا توجد مشتريات</td></tr>';
+          return;
+      }
+      
+      // Group purchases by PurchaseID
+      const groupedPurchases = {};
+      data.forEach(p => {
+          if (!groupedPurchases[p.PurchaseID]) {
+              groupedPurchases[p.PurchaseID] = {
+                  PurchaseID: p.PurchaseID,
+                  PurchaseDate: p.PurchaseDate,
+                  SupplierName: p.SupplierName,
+                  TotalAmount: p.TotalAmount,
+                  Products: [],
+                  Quantities: [],
+                  Costs: []
+              };
           }
-        });
+          groupedPurchases[p.PurchaseID].Products.push(
+              `${p.ProductName} (${p.Quantity} × ${p.UnitCost})`
+          );
+      });
+
+      // Add rows to table
+      const tbody = document.getElementById('purchasesTableBody');
+      Object.values(groupedPurchases).forEach(p => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+              <td class="border px-2 py-1">${p.PurchaseID}</td>
+              <td class="border px-2 py-1">${new Date(p.PurchaseDate).toLocaleDateString()}</td>
+              <td class="border px-2 py-1">${p.SupplierName}</td>
+              <td class="border px-2 py-1">${p.TotalAmount}</td>
+              <td class="border px-2 py-1">
+                  <button data-id="${p.PurchaseID}" class="edit-purchase bg-yellow-400 px-2 py-1 rounded mr-1">تعديل</button>
+                  <button data-id="${p.PurchaseID}" class="delete-purchase bg-red-500 text-white px-2 py-1 rounded">حذف</button>
+              </td>
+          `;
+          tbody.appendChild(row);
+      });
+
+      // Add event listeners for edit buttons
+      document.querySelectorAll('.edit-purchase').forEach(btn => {
+          btn.addEventListener('click', async () => {
+              const id = btn.dataset.id;
+              console.log('Edit purchase clicked for ID:', id);
+              try {
+                  const res = await fetch(`http://localhost:3001/api/purchases/${id}`);
+                  const purchase = await res.json();
+                  console.log('Loaded purchase data:', purchase);
+                  if (res.ok) {
+                      showEditPurchaseForm(purchase);
+                  } else {
+                      console.error('Error loading purchase:', purchase.error);
+                      alert('خطأ في تحميل بيانات المشتريات');
+                  }
+              } catch (error) {
+                  console.error('Error in edit button:', error);
+                  alert('خطأ في الاتصال بالخادم');
+              }
+          });
+      });
+
+      // Add event listeners for delete buttons
+      document.querySelectorAll('.delete-purchase').forEach(btn => {
+          btn.addEventListener('click', async () => {
+              const id = btn.dataset.id;
+              console.log('Delete purchase clicked for ID:', id);
+              if (confirm('هل أنت متأكد من حذف هذه المشتريات؟')) {
+                  try {
+                      const res = await fetch(`http://localhost:3001/api/purchases/${id}`, {
+                          method: 'DELETE'
+                      });
+                      const result = await res.json();
+                      console.log('Delete result:', result);
+                      if (res.ok) {
+                          loadPurchases(); // Reload purchases after deletion
+                      } else {
+                          console.error('Error deleting purchase:', result.error);
+                          alert(result.error || 'خطأ في حذف المشتريات');
+                      }
+                  } catch (error) {
+                      console.error('Error in delete button:', error);
+                      alert('خطأ في الاتصال بالخادم');
+                  }
+              }
+          });
       });
     }
     async function loadExpenses() {
@@ -362,11 +414,14 @@
       const res = await fetch('http://localhost:3001/api/payments');
       const data = await res.json();
       let html = '<h2 class="text-2xl mb-4">الدفعات</h2>';
-      html += '<table class="min-w-full bg-white border"><thead><tr><th class="border px-2 py-1">ID</th><th class="border px-2 py-1">ID التاجر</th><th class="border px-2 py-1">اسم التاجر</th><th class="border px-2 py-1">المبلغ</th><th class="border px-2 py-1">التاريخ</th></tr></thead><tbody>';
+      html += '<table class="min-w-full bg-white border"><thead><tr><th class="border px-2 py-1">ID</th><th class="border px-2 py-1">ID التاجر</th><th class="border px-2 py-1">اسم التاجر</th><th class="border px-2 py-1">المبلغ</th><th class="border px-2 py-1">التاريخ</th><th class="border px-2 py-1">الإجراءات</th></tr></thead><tbody>';
       if (res.ok && data.length) {
         data.forEach(p => {
           console.log(p);
-          html += `<tr><td class="border px-2 py-1">${p.PaymentID}</td><td class="border px-2 py-1">${p.TraderID}</td><td class="border px-2 py-1">${p.TraderName}</td><td class="border px-2 py-1">${p.Amount}</td><td class="border px-2 py-1">${p.PaymentDate}</td></tr>`;
+          html += `<tr><td class="border px-2 py-1">${p.PaymentID}</td><td class="border px-2 py-1">${p.TraderID}</td><td class="border px-2 py-1">${p.TraderName}</td><td class="border px-2 py-1">${p.Amount}</td><td class="border px-2 py-1">${p.PaymentDate}</td><td class="border px-2 py-1">
+            <button data-id="${p.PaymentID}" class="edit-payment bg-yellow-400 px-2 py-1 rounded mr-1">تعديل</button>
+            <button data-id="${p.PaymentID}" class="delete-payment bg-red-500 text-white px-2 py-1 rounded">حذف</button>
+          </td></tr>`;
         });
       } else html += '<tr><td colspan="4" class="text-center py-2">لا توجد بيانات</td></tr>';
       html += '</tbody></table>';
@@ -765,47 +820,101 @@
     async function showAddPurchaseForm() {
       const res = await fetch('http://localhost:3001/api/products');
       const products = await res.json();
-      let html = `<div class="max-w-2xl mx-auto bg-white p-6 rounded shadow"><h3 class="text-xl mb-4">إنشاء مشتريات</h3><div id="purchaseMsg"></div><form id="purchaseForm" class="space-y-4">`;
-      html += `<label>المورد</label><input id="pSupplier" type="text" class="w-full border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="اسم المورد" required />`;
-      html += `<label>ملاحظات</label><textarea id="pNotes" class="w-full border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="ملاحظات (اختياري)"></textarea>`;
-      html += `<div id="purchaseRows" class="space-y-2">`;
-      html += `<div class="grid grid-cols-6 gap-2 items-center border-b pb-2 mb-2"><select id="pProduct0" class="col-span-2 border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"><option value="">اختر منتج</option><option value="new">+ منتج جديد</option>`;
-      products.forEach(p => { html += `<option value="${p.ProductID}" data-cost="${p.UnitCost}" data-stock="${p.StockQuantity}">${p.ProductName} (متوفر: ${p.StockQuantity})</option>`; });
-      html += `</select><input id="pQuantity0" type="number" min="1" placeholder="الكمية" class="col-span-1 border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500" /><input id="pCost0" type="number" step="0.01" placeholder="التكلفة" class="col-span-1 border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500" /><button id="addPurchaseRow" type="button" class="col-span-1 text-blue-600 font-bold text-2xl">+</button>
-        <div id="pNewFields0" class="col-span-6 grid grid-cols-3 gap-2 mt-2 hidden">
-          <input type="text" id="pNewName0" name="pNewName0" placeholder="اسم المنتج" class="border-gray-300 px-3 py-2 rounded flex-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
-          <input type="text" id="pNewCategory0" name="pNewCategory0" placeholder="الصنف" class="border-gray-300 px-3 py-2 rounded flex-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
-          <input type="number" step="0.01" id="pNewPrice0" name="pNewPrice0" placeholder="سعر الوحدة" class="border-gray-300 px-3 py-2 rounded flex-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
-        </div></div>`;
-      html += `</div><button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">حفظ</button></form></div>`;
+      let html = `<div class="max-w-2xl mx-auto bg-white p-6 rounded shadow">
+        <h3 class="text-xl mb-4">إنشاء مشتريات</h3>
+        <div id="purchaseMsg"></div>
+        <form id="purchaseForm" class="space-y-4">
+          <label>المورد</label>
+          <input id="supplierName" type="text" class="w-full border px-3 py-2 rounded" placeholder="اسم المورد" required />
+          <label>ملاحظات</label>
+          <textarea id="notes" class="w-full border px-3 py-2 rounded" placeholder="ملاحظات (اختياري)"></textarea>
+          <div id="purchaseRows" class="space-y-2">
+            <div class="grid grid-cols-6 gap-2 items-center border-b pb-2 mb-2">
+              <select id="pProduct0" class="col-span-2 border px-3 py-2 rounded">
+                <option value="">اختر منتج</option>
+                <option value="new">+ منتج جديد</option>
+                ${products.map(p => `<option value="${p.ProductID}" data-cost="${p.UnitCost}" data-stock="${p.StockQuantity}">${p.ProductName} (متوفر: ${p.StockQuantity})</option>`).join('')}
+              </select>
+              <input id="pQuantity0" type="number" min="1" placeholder="الكمية" class="col-span-1 border px-3 py-2 rounded" />
+              <input id="pCost0" type="number" step="0.01" placeholder="التكلفة" class="col-span-1 border px-3 py-2 rounded" />
+              <button id="addPurchaseRow" type="button" class="col-span-1 text-blue-600 font-bold text-2xl">+</button>
+              <div id="pNewFields0" class="col-span-6 grid grid-cols-3 gap-2 mt-2 hidden">
+                <input type="text" id="pNewName0" name="pNewName0" placeholder="اسم المنتج" class="border px-3 py-2 rounded flex-1" />
+                <input type="text" id="pNewCategory0" name="pNewCategory0" placeholder="الصنف" class="border px-3 py-2 rounded flex-1" />
+                <input type="number" step="0.01" id="pNewPrice0" name="pNewPrice0" placeholder="سعر الوحدة" class="border px-3 py-2 rounded flex-1" />
+              </div>
+            </div>
+          </div>
+          <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded">حفظ</button>
+        </form>
+      </div>`;
       document.getElementById('content').innerHTML = html;
       document.getElementById('pProduct0').addEventListener('change', e => {
         document.getElementById('pNewFields0').classList.toggle('hidden', e.target.value !== 'new');
       });
       let cnt = 1;
       document.getElementById('addPurchaseRow').addEventListener('click', () => {
-        const div = document.createElement('div'); div.className = 'grid grid-cols-6 gap-2 items-center border-b pb-2 mb-2';
-        const sel = document.createElement('select'); sel.id = `pProduct${cnt}`; sel.className = 'col-span-2 border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500'; sel.innerHTML = '<option value="">اختر منتج</option><option value="new">+ منتج جديد</option>';
-        products.forEach(p => { sel.innerHTML += `<option value="${p.ProductID}" data-cost="${p.UnitCost}" data-stock="${p.StockQuantity}">${p.ProductName} (متوفر: ${p.StockQuantity})</option>`; });
-        const q = document.createElement('input'); q.id = `pQuantity${cnt}`; q.type = 'number'; q.min = 1; q.placeholder = 'الكمية'; q.className = 'col-span-1 border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500';
-        const c = document.createElement('input'); c.id = `pCost${cnt}`; c.type = 'number'; c.step = '0.01'; c.placeholder = 'التكلفة'; c.className = 'col-span-1 border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500';
-        const rm = document.createElement('button'); rm.type = 'button'; rm.textContent = '×'; rm.className = 'col-span-1 text-red-600 font-bold'; rm.addEventListener('click', () => div.remove());
-        const newFields = document.createElement('div'); newFields.id = `pNewFields${cnt}`; newFields.className = 'col-span-6 grid grid-cols-3 gap-2 mt-2 hidden';
-        const newName = document.createElement('input'); newName.type = 'text'; newName.id = `pNewName${cnt}`; newName.name = `pNewName${cnt}`; newName.placeholder = 'اسم المنتج'; newName.className = 'border-gray-300 px-3 py-2 rounded flex-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500';
-        const newCat = document.createElement('input'); newCat.type = 'text'; newCat.id = `pNewCategory${cnt}`; newCat.name = `pNewCategory${cnt}`; newCat.placeholder = 'الصنف'; newCat.className = 'border-gray-300 px-3 py-2 rounded flex-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500';
-        const newPrice = document.createElement('input'); newPrice.type = 'number'; newPrice.step = '0.01'; newPrice.id = `pNewPrice${cnt}`; newPrice.name = `pNewPrice${cnt}`; newPrice.placeholder = 'سعر الوحدة'; newPrice.className = 'border-gray-300 px-3 py-2 rounded flex-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500';
+        const div = document.createElement('div');
+        div.className = 'grid grid-cols-6 gap-2 items-center border-b pb-2 mb-2';
+        const sel = document.createElement('select');
+        sel.id = `pProduct${cnt}`;
+        sel.className = 'col-span-2 border px-3 py-2 rounded';
+        sel.innerHTML = '<option value="">اختر منتج</option><option value="new">+ منتج جديد</option>';
+        products.forEach(p => {
+          sel.innerHTML += `<option value="${p.ProductID}" data-cost="${p.UnitCost}" data-stock="${p.StockQuantity}">${p.ProductName} (متوفر: ${p.StockQuantity})</option>`;
+        });
+        const q = document.createElement('input');
+        q.id = `pQuantity${cnt}`;
+        q.type = 'number';
+        q.min = 1;
+        q.placeholder = 'الكمية';
+        q.className = 'col-span-1 border px-3 py-2 rounded';
+        const c = document.createElement('input');
+        c.id = `pCost${cnt}`;
+        c.type = 'number';
+        c.step = '0.01';
+        c.placeholder = 'التكلفة';
+        c.className = 'col-span-1 border px-3 py-2 rounded';
+        const rm = document.createElement('button');
+        rm.type = 'button';
+        rm.textContent = '×';
+        rm.className = 'col-span-1 text-red-600 font-bold';
+        rm.addEventListener('click', () => div.remove());
+        const newFields = document.createElement('div');
+        newFields.id = `pNewFields${cnt}`;
+        newFields.className = 'col-span-6 grid grid-cols-3 gap-2 mt-2 hidden';
+        const newName = document.createElement('input');
+        newName.type = 'text';
+        newName.id = `pNewName${cnt}`;
+        newName.name = `pNewName${cnt}`;
+        newName.placeholder = 'اسم المنتج';
+        newName.className = 'border px-3 py-2 rounded flex-1';
+        const newCat = document.createElement('input');
+        newCat.type = 'text';
+        newCat.id = `pNewCategory${cnt}`;
+        newCat.name = `pNewCategory${cnt}`;
+        newCat.placeholder = 'الصنف';
+        newCat.className = 'border px-3 py-2 rounded flex-1';
+        const newPrice = document.createElement('input');
+        newPrice.type = 'number';
+        newPrice.step = '0.01';
+        newPrice.id = `pNewPrice${cnt}`;
+        newPrice.name = `pNewPrice${cnt}`;
+        newPrice.placeholder = 'سعر الوحدة';
+        newPrice.className = 'border px-3 py-2 rounded flex-1';
         newFields.append(newName, newCat, newPrice);
         div.append(sel, q, c, rm);
         div.append(newFields);
-        document.getElementById('purchaseRows').append(div); cnt++;
+        document.getElementById('purchaseRows').append(div);
+        cnt++;
         sel.addEventListener('change', e => {
           document.getElementById(`pNewFields${cnt-1}`).classList.toggle('hidden', e.target.value !== 'new');
         });
       });
       document.getElementById('purchaseForm').addEventListener('submit', async e => {
         e.preventDefault();
-        const supplier_name = document.getElementById('pSupplier').value.trim();
-        const notes = document.getElementById('pNotes').value.trim();
+        const supplier_name = document.getElementById('supplierName').value.trim();
+        const notes = document.getElementById('notes').value.trim();
         const rows = [];
         for (let i = 0; i < cnt; i++) {
           const ps = document.getElementById(`pProduct${i}`);
@@ -828,21 +937,16 @@
           document.getElementById('purchaseMsg').innerHTML = '<p class="text-red-600">اختر منتج واحد على الأقل</p>';
           return;
         }
-        console.log({ supplier_name, notes, products: rows });
         const res2 = await fetch('http://localhost:3001/api/purchases', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  supplier_name,
-                  notes,
-                  products: rows.filter(p => p.product_id && !isNaN(p.product_id)) // التأكد من وجود معرف المنتج
-                })
-              });
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            supplier_name,
+            notes,
+            products: rows.filter(p => p.product_id && !isNaN(p.product_id))
+          })
+        });
         const r = await res2.json();
-        console.log('Purchase POST status:', res2.status, 'response:', r);
-          if(res2.status === 400) {
-            document.getElementById('purchaseMsg').innerHTML = `<p class="text-red-600">${r.error || 'بيانات غير صالحة'}</p>`;
-          }
         if (res2.ok) {
           loadPurchases();
         } else {
@@ -851,85 +955,9 @@
         }
       });
     }
-    // Function to show manual payment form
-    async function showManualPaymentForm(traderId) {
-      // Get trader info
-      const res = await fetch(`http://localhost:3001/api/traders/${traderId}`);
-      const trader = await res.json();
-
-      // Get today's date in YYYY-MM-DD format
-      const today = new Date().toISOString().split('T')[0];
-
-      let html = `<div class="max-w-md mx-auto bg-white p-6 rounded shadow">
-        <h3 class="text-xl mb-4">إضافة دفعة يدوية</h3>
-        <div id="manualPaymentMsg" class="mb-2"></div>
-        <form id="manualPaymentForm" class="space-y-4">
-          <div>
-            <label class="block mb-1">التاجر</label>
-            <input type="text" value="${trader.TraderName}" disabled class="w-full border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-            <input type="hidden" id="manualTraderId" value="${traderId}">
-          </div>
-          <div>
-            <label class="block mb-1">المبلغ</label>
-            <input type="number" id="manualPaymentAmount" placeholder="المبلغ" class="w-full border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
-          </div>
-          <div>
-            <label class="block mb-1">التاريخ</label>
-            <input type="date" id="manualPaymentDate" value="${today}" class="w-full border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
-          </div>
-          <div>
-            <label class="block mb-1">ملاحظات</label>
-            <textarea id="manualPaymentNote" placeholder="ملاحظات (اختياري)" class="w-full border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
-          </div>
-          <div class="flex justify-end space-x-2">
-            <button type="button" id="cancelManualPayment" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 hover:border-gray-400 transition-colors">إلغاء</button>
-            <button type="submit" class="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-700 transition-colors">إضافة الدفعة</button>
-          </div>
-        </form>
-      </div>`;
-
-      document.getElementById('content').innerHTML = html;
-
-      // Handle form submission
-      document.getElementById('manualPaymentForm').addEventListener('submit', async e => {
-        e.preventDefault();
-        const traderId = document.getElementById('manualTraderId').value;
-        const amount = document.getElementById('manualPaymentAmount').value;
-        const paymentDate = document.getElementById('manualPaymentDate').value;
-        const note = document.getElementById('manualPaymentNote').value;
-
-        const res = await fetch('http://localhost:3001/api/manual-payments', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            TraderID: traderId,
-            Amount: parseFloat(amount),  // Convert to number
-            PaymentDate: new Date(paymentDate).toISOString().split('T')[0],  // Format date as YYYY-MM-DD
-            Note: note
-          })
-        });
-
-        const data = await res.json();
-        if (res.ok) {
-          document.getElementById('manualPaymentMsg').innerHTML = `<p class="text-green-600">${data.message || 'تم إضافة الدفعة بنجاح'}</p>`;
-          // Reset form
-          document.getElementById('manualPaymentForm').reset();
-          // Update traders list
-          loadTraders();
-        } else {
-          document.getElementById('manualPaymentMsg').innerHTML = `<p class="text-red-600">${data.error || 'خطأ في إضافة الدفعة'}</p>`;
-        }
-      });
-
-      // Handle cancel
-      document.getElementById('cancelManualPayment').addEventListener('click', () => {
-        loadTraders();
-      });
-    }
-    // Helper: format date string for display
-    function formatDate(dateStr) {
-      const d = new Date(dateStr);
-      return new Intl.DateTimeFormat('ar-EG', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
+    // Function to show edit purchase form
+    function showEditPurchaseForm(purchase) {
+      showAddPurchaseForm();
     }
     // navigation handler
     document.querySelectorAll('nav a').forEach(a => a.addEventListener('click', e => {
@@ -942,6 +970,33 @@
       else if (page === 'expenses') loadExpenses();
       else if (page === 'payments') loadPayments();
     }));
+    // Add active state to current page navigation
+    const currentPage = window.location.hash.substring(1) || 'sales'; // Get the current page from URL hash or default to 'sales'
+    document.querySelectorAll('nav a').forEach(a => {
+      const page = a.getAttribute('data-page');
+      if (page === currentPage) {
+        a.classList.add('bg-blue-50', 'text-blue-600');
+      }
+      a.addEventListener('click', e => {
+        e.preventDefault();
+        const page = a.getAttribute('data-page');
+        // Remove active state from all links
+        document.querySelectorAll('nav a').forEach(link => {
+          link.classList.remove('bg-blue-50', 'text-blue-600');
+        });
+        // Add active state to clicked link
+        a.classList.add('bg-blue-50', 'text-blue-600');
+        // Update URL hash
+        window.location.hash = page;
+        // Load the content
+        if (page === 'sales') loadSales();
+        else if (page === 'products') loadProducts();
+        else if (page === 'traders') loadTraders();
+        else if (page === 'purchases') loadPurchases();
+        else if (page === 'expenses') loadExpenses();
+        else if (page === 'payments') loadPayments();
+      });
+    });
     // initial load
     loadSales();
   </script>
